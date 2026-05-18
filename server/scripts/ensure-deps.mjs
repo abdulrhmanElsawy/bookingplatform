@@ -1,5 +1,6 @@
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readlinkSync,
   realpathSync,
@@ -31,17 +32,32 @@ function run(cmd, cwd) {
   }
 }
 
+function linkEntryPresent() {
+  try {
+    lstatSync(linkPath);
+    return true;
+  } catch (err) {
+    return !(err && typeof err === 'object' && err.code === 'ENOENT');
+  }
+}
+
 function linkDiagnostics() {
   const linkedPkg = resolve(linkPath, 'package.json');
+  const entryPresent = linkEntryPresent();
   let readlink = null;
   let realpath = null;
+  let lstatIsSymbolicLink = false;
   try {
-    if (existsSync(linkPath)) readlink = readlinkSync(linkPath);
+    if (entryPresent) {
+      const st = lstatSync(linkPath);
+      lstatIsSymbolicLink = st.isSymbolicLink();
+      readlink = readlinkSync(linkPath);
+    }
   } catch {
     /* ignore */
   }
   try {
-    if (existsSync(linkPath)) realpath = realpathSync(linkPath);
+    if (entryPresent) realpath = realpathSync(linkPath);
   } catch {
     /* ignore */
   }
@@ -49,7 +65,10 @@ function linkDiagnostics() {
     serverRoot,
     sharedRoot,
     linkPath,
+    linkEntryPresent: entryPresent,
     linkExists: existsSync(linkPath),
+    brokenSymlink: entryPresent && !existsSync(linkPath),
+    lstatIsSymbolicLink,
     linkedPkgExists: existsSync(linkedPkg),
     readlink,
     realpath,
@@ -59,17 +78,30 @@ function linkDiagnostics() {
   };
 }
 
+/** Remove link path including broken symlinks (existsSync is false for those). */
+function removeLinkEntry() {
+  if (!linkEntryPresent()) return;
+  rmSync(linkPath, { recursive: true, force: true });
+}
+
 /** Absolute symlink so Node/tsc resolve @growth-world/shared (not ../../shared). */
 function linkSharedAbsolute() {
   const scopeDir = resolve(serverRoot, 'node_modules/@growth-world');
   const target = resolve(sharedRoot);
   mkdirSync(scopeDir, { recursive: true });
 
-  if (existsSync(linkPath)) {
-    rmSync(linkPath, { recursive: true, force: true });
-  }
+  removeLinkEntry();
 
-  symlinkSync(target, linkPath, 'dir');
+  try {
+    symlinkSync(target, linkPath, 'dir');
+  } catch (err) {
+    if (err && typeof err === 'object' && err.code === 'EEXIST') {
+      removeLinkEntry();
+      symlinkSync(target, linkPath, 'dir');
+      return;
+    }
+    throw err;
+  }
 }
 
 if (!existsSync(sharedPkg)) {
@@ -98,12 +130,17 @@ try {
     linkSharedAbsolute();
   }
 } catch (err) {
+  const diag = linkDiagnostics();
   debugLog('H3', 'ensure-deps.mjs:link-error', 'symlink failed', {
-    ...linkDiagnostics(),
+    ...diag,
     error: err instanceof Error ? err.message : String(err),
   });
-  console.error('[ensure-deps] Failed to create shared symlink:', err);
-  process.exit(1);
+  if (diag.linkedPkgExists || sharedLinkReady()) {
+    debugLog('H5', 'ensure-deps.mjs:link-recover', 'link ok after error', diag);
+  } else {
+    console.error('[ensure-deps] Failed to create shared symlink:', err);
+    process.exit(1);
+  }
 }
 
 const after = linkDiagnostics();
