@@ -1,0 +1,48 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.card {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--card-radius);
+  border: 2px solid var(--border-subtle);
+  background: var(--card-bg);
+  cursor: pointer;
+  text-align: start;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  border-color: var(--text-link);
+}
+
+.cardActive {
+  border-color: var(--search-btn-bg);
+  background: var(--badge-featured-bg);
+  box-shadow: 0 0 0 1px var(--search-btn-bg);
+}
+
+.title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-heading);
+}
+
+.desc {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--line-height-current);
+}

@@ -1,0 +1,168 @@
+:root {
+  /* Growth World — dark theme */
+  --color-brand: #82c91e;
+  --color-brand-dark: #4a7729;
+  --color-brand-muted: rgb(130 201 30 / 0.15);
+  --btn-primary-text: #0b0d0e;
+
+  /* Page & layout */
+  --page-bg: #0b0d0e;
+  --card-bg: #1a1c1e;
+  --card-border: 1px solid #2a2d30;
+  --card-radius: 8px;
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  --card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.45);
+
+  /* Header */
+  --header-bg: #0b0d0e;
+  --header-height-top: 54px;
+  --header-height-nav: 48px;
+  --header-text: #ffffff;
+  --header-border: rgb(255 255 255 / 0.12);
+
+  /* Search bar */
+  --search-bar-bg: #1a1c1e;
+  --search-bar-border: #82c91e;
+  --search-bar-border-width: 2px;
+  --sidebar-width: 240px;
+  --detail-sidebar-width: 360px;
+  --savings-strip-bg: rgb(130 201 30 / 0.12);
+  --table-header-bg: #1a1c1e;
+  --focus-ring: #82c91e;
+  --border-subtle: #2a2d30;
+  --overlay-backdrop: rgb(0 0 0 / 0.65);
+  --search-btn-bg: #82c91e;
+  --search-btn-hover: #6ead18;
+
+  /* Text */
+  --text-heading: #ffffff;
+  --text-body: #e5e7eb;
+  --text-muted: #9ca3af;
+  --text-link: #82c91e;
+  --text-link-hover: #9ed42e;
+  --text-price: #ffffff;
+  --text-price-original: #f87171;
+  --text-deal: #82c91e;
+
+  /* Badges */
+  --badge-featured-bg: rgb(130 201 30 / 0.15);
+  --badge-featured-text: #82c91e;
+  --badge-featured-border: #82c91e;
+  --badge-deal-bg: #82c91e;
+  --badge-deal-text: #0b0d0e;
+  --badge-new-bg: #82c91e;
+  --badge-new-text: #0b0d0e;
+  --badge-score-bg: #82c91e;
+  --badge-score-text: #0b0d0e;
+
+  /* Score labels */
+  --score-exceptional: #82c91e;
+  --score-very-good: #6ead18;
+  --score-good: #4a7729;
+
+  /* Filter sidebar */
+  --filter-width: 240px;
+  --filter-bg: #1a1c1e;
+  --filter-divider: #2a2d30;
+  --filter-checkbox-active: #82c91e;
+
+  /* Container */
+  --container-max: 1200px;
+  --container-px: 16px;
+  --section-gap: 40px;
+  --card-gap: 16px;
+
+  /* Brand Colors — aliases */
+  --color-primary: var(--color-brand);
+  --color-primary-light: #9ed42e;
+  --color-primary-dark: var(--color-brand-dark);
+  --color-accent: var(--color-brand);
+  --color-accent-light: #9ed42e;
+  --color-success: #82c91e;
+  --color-warning: #eab308;
+  --color-danger: #ef4444;
+  --color-info: #38bdf8;
+
+  /* Neutrals */
+  --color-white: #ffffff;
+  --color-gray-50: #141618;
+  --color-gray-100: #1a1c1e;
+  --color-gray-200: #222528;
+  --color-gray-300: #2a2d30;
+  --color-gray-400: #3f4348;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #9ca3af;
+  --color-gray-700: #d1d5db;
+  --color-gray-800: #e5e7eb;
+  --color-gray-900: #f3f4f6;
+  --color-black: #000000;
+
+  /* Typography — Tajawal is PRIMARY */
+  --font-arabic: 'Tajawal', sans-serif;
+  --font-english: 'Inter', 'Tajawal', sans-serif;
+  --font-primary: var(--font-arabic);
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --line-height-ar: 1.8;
+  --line-height-en: 1.6;
+  --line-height-body: var(--line-height-ar);
+  --line-height-current: var(--line-height-ar);
+  --line-height-tight: 1.25;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-black: 900;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.35);
+
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-notification: 400;
+  --z-tooltip: 500;
+}
+
+[data-lang='en'] {
+  --font-primary: var(--font-english);
+  --line-height-body: var(--line-height-en);
+  --line-height-current: var(--line-height-en);
+}

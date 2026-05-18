@@ -1,0 +1,17 @@
+.logo {
+  display: block;
+  inline-size: auto;
+  object-fit: contain;
+}
+
+.header {
+  block-size: 30px;
+}
+
+.auth {
+  block-size: 38px;
+}
+
+.footer {
+  block-size: 40px;
+}

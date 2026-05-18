@@ -1,0 +1,52 @@
+.nav {
+  position: sticky;
+  inset-block-start: calc(var(--header-height-top) + var(--header-height-nav));
+  z-index: calc(var(--z-sticky) - 1);
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: var(--space-2);
+  margin-block-end: var(--space-6);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  scrollbar-width: thin;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.link {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--text-heading);
+  background: color-mix(in srgb, var(--color-brand) 8%, transparent);
+}
+
+.active {
+  color: var(--btn-primary-text, var(--color-gray-900));
+  background: var(--color-brand);
+  font-weight: var(--font-semibold);
+}
+
+.active:hover {
+  color: var(--btn-primary-text, var(--color-gray-900));
+  background: var(--color-brand);
+}

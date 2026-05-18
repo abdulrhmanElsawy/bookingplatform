@@ -1,0 +1,21 @@
+# MongoDB + Redis for local development.
+# After `docker compose up -d`, run from repo root: `npm run seed:dev`
+# (requires server/.env or MONGODB_URI=mongodb://localhost:27017/growth-world).
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - gw_mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+
+volumes:
+  gw_mongo_data:

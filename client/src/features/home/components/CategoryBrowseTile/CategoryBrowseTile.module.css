@@ -1,0 +1,42 @@
+.tile {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  min-block-size: 120px;
+  padding: var(--space-4);
+  border-radius: var(--card-radius);
+  background-color: var(--page-bg);
+  color: var(--color-white);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+}
+
+.tile:hover {
+  color: var(--color-white);
+  text-decoration: none;
+  box-shadow: var(--card-shadow-hover);
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.15));
+}
+
+.label {
+  position: relative;
+  z-index: 2;
+}

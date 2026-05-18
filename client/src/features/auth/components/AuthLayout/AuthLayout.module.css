@@ -1,0 +1,91 @@
+.shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+  overflow: hidden;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  background-color: var(--page-bg);
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgb(11 13 14 / 0.88) 0%,
+    rgb(11 13 14 / 0.82) 50%,
+    rgb(11 13 14 / 0.9) 100%
+  );
+  pointer-events: none;
+}
+
+.topBar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  max-inline-size: var(--container-max);
+  inline-size: 100%;
+  margin-inline: auto;
+}
+
+.homeLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-link);
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  color: var(--text-link-hover);
+  text-decoration: none;
+}
+
+.homeIcon {
+  flex-shrink: 0;
+}
+
+[dir='rtl'] .homeIcon {
+  transform: scaleX(-1);
+}
+
+.main {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-6) var(--space-10);
+}
+
+.card {
+  inline-size: 100%;
+  max-inline-size: 22rem;
+  padding: var(--space-8) var(--space-6);
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow-hover);
+}
+
+@media (min-width: 480px) {
+  .card {
+    max-inline-size: 37rem;
+  }
+}

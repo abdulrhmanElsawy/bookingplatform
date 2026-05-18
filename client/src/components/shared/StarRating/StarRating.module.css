@@ -1,0 +1,37 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star {
+  position: relative;
+  display: inline-block;
+  color: #cccccc;
+  line-height: 1;
+}
+
+.starFilled {
+  color: var(--search-bar-border);
+}
+
+.sm {
+  font-size: 12px;
+}
+
+.md {
+  font-size: 16px;
+}
+
+.lg {
+  font-size: 20px;
+}
+
+.half {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 50%;
+  overflow: hidden;
+  color: var(--search-bar-border);
+}

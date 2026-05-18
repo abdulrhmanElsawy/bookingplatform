@@ -1,0 +1,35 @@
+.strip {
+  background: var(--header-bg);
+  padding-block: var(--space-4);
+}
+@media (min-width: 950px) {
+  .strip {
+    grid-row: none !important;
+  }
+}
+
+.inner {
+  max-inline-size: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.breadcrumb {
+  font-size: var(--text-sm);
+  color: rgb(255 255 255 / 0.85);
+}
+
+.breadcrumb a {
+  color: var(--color-white);
+}
+
+.breadcrumb a:hover {
+  color: var(--color-white);
+}
+
+.bar {
+  inline-size: 100%;
+}

@@ -1,0 +1,10 @@
+process.env.NODE_ENV = 'test';
+process.env.MONGODB_URI ??= 'mongodb://127.0.0.1:27017/growth-world-test';
+process.env.REDIS_URL ??= 'redis://127.0.0.1:6379';
+process.env.CLIENT_ORIGIN ??= 'http://localhost:5173';
+process.env.PORT ??= '4000';
+process.env.JWT_SECRET ??= '0123456789abcdef0123456789abcdef';
+process.env.JWT_ACCESS_EXPIRES_IN ??= '15m';
+process.env.JWT_REFRESH_EXPIRES_IN ??= '7d';
+process.env.UPLOAD_DIR ??= './uploads-test';
+process.env.PUBLIC_UPLOAD_BASE_URL ??= 'http://localhost:4000';

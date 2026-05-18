@@ -1,0 +1,28 @@
+.wrap {
+  margin-inline: calc(-1 * var(--container-px));
+  padding-inline: var(--container-px);
+}
+
+.track {
+  display: flex;
+  gap: var(--card-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--container-px);
+  padding-block-end: var(--space-2);
+  scrollbar-width: thin;
+}
+
+.track > * {
+  flex: 0 0 min(280px, 85vw);
+  scroll-snap-align: start;
+}
+
+.track::-webkit-scrollbar {
+  block-size: 6px;
+}
+
+.track::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: var(--radius-full);
+}

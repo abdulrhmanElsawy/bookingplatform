@@ -1,0 +1,12 @@
+{
+  "networkError": "Network error. Please try again.",
+  "serverError": "Something went wrong on the server. Please try again later.",
+  "unauthorized": "Please sign in to continue.",
+  "forbidden": "You don't have permission to access this page.",
+  "notFound": "The page you're looking for doesn't exist.",
+  "rateLimited": "You've exceeded the limit. Please wait a moment.",
+  "uploadTooLarge": "The file is too large. Maximum {{max}} MB.",
+  "uploadInvalidType": "This file type isn't supported.",
+  "sessionExpired": "Your session has expired. Please sign in again.",
+  "validation": "Please check your input."
+}

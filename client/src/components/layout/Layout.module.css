@@ -1,0 +1,15 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--page-bg);
+}
+
+.main {
+  flex: 1;
+  inline-size: 100%;
+}
+
+.pageEnter {
+  animation: fadeIn var(--transition-base) ease-out;
+}

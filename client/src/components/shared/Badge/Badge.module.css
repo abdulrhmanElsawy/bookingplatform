@@ -1,0 +1,44 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: var(--font-bold);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+
+.featured {
+  background: var(--badge-featured-bg);
+  color: var(--badge-featured-text);
+  border: 1px solid var(--badge-featured-border);
+}
+
+.deal {
+  background: var(--badge-deal-bg);
+  color: var(--badge-deal-text);
+}
+
+.new {
+  background: var(--badge-new-bg);
+  color: var(--badge-new-text);
+}
+
+.popular {
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
+.verified {
+  background: var(--color-success);
+  color: var(--color-white);
+}
+
+.score {
+  background: var(--badge-score-bg);
+  color: var(--badge-score-text);
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 0;
+  font-size: var(--text-sm);
+  padding: 4px 8px;
+}

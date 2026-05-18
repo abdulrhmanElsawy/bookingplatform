@@ -1,0 +1,50 @@
+import type { NextFunction, Request, Response } from 'express';
+import type { Types } from 'mongoose';
+
+import { getAccessTokenFromRequest } from '../lib/authCookies.js';
+import { verifyAccessToken } from '../lib/jwt.js';
+import type { HttpError } from './errorHandler.js';
+import type { UserRole } from '../modules/users/user.model.js';
+import { User } from '../modules/users/user.model.js';
+
+type LeanAuthUser = {
+  _id: Types.ObjectId;
+  email: string;
+  role: UserRole;
+} | null;
+
+export async function authenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const token = getAccessTokenFromRequest(req);
+    if (!token) {
+      next(Object.assign(new Error('Unauthorized'), { status: 401 }) as HttpError);
+      return;
+    }
+    const payload = verifyAccessToken(token);
+    const user = (await User.findOne({
+      _id: payload.sub,
+      isDeleted: false,
+      isActive: true,
+    })
+      .select('_id email role')
+      .lean()) as LeanAuthUser;
+
+    if (!user) {
+      next(Object.assign(new Error('Unauthorized'), { status: 401 }) as HttpError);
+      return;
+    }
+
+    req.user = {
+      id: String(user._id),
+      email: user.email,
+      role: user.role,
+    };
+    next();
+  } catch {
+    next(Object.assign(new Error('Unauthorized'), { status: 401 }) as HttpError);
+  }
+}

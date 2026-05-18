@@ -1,0 +1,33 @@
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--savings-strip-bg);
+  border-block-start: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+}
+@media (max-width: 950px) {
+  .strip {
+    grid-row: none !important;
+  }
+}
+
+.text {
+  margin: 0;
+  color: var(--text-body);
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.cta {
+  font-weight: var(--font-semibold);
+  color: var(--text-link);
+  white-space: nowrap;
+}
+
+.cta:hover {
+  color: var(--text-link-hover);
+}
