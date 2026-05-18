@@ -121,9 +121,15 @@ if (!existsSync(sharedDist)) {
   run('npm run build', sharedRoot);
 }
 
-run('npm install --include=dev', serverRoot);
+const serverDepsReady = existsSync(resolve(serverRoot, 'node_modules/express/package.json'));
 
-debugLog('H2', 'ensure-deps.mjs:after-npm-install', 'before link', linkDiagnostics());
+// npm install resets file:../shared to a relative symlink that often breaks on cPanel.
+if (!serverDepsReady) {
+  run('npm install --include=dev', serverRoot);
+  debugLog('H2', 'ensure-deps.mjs:after-npm-install', 'after fresh install', linkDiagnostics());
+} else {
+  debugLog('H2', 'ensure-deps.mjs:skip-npm-install', 'server deps present', linkDiagnostics());
+}
 
 try {
   if (!sharedLinkReady()) {
