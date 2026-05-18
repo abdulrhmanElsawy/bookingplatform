@@ -3,6 +3,12 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@growth-world/shared": ["../shared/dist/index.d.ts"],
+      "@growth-world/shared/*": ["../shared/dist/*"]
+    },
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,

@@ -1,6 +1,6 @@
 import Queue from 'bull';
 
-import { getEnv } from '../../config/env.js';
+import { getEnv, usesBullEmailQueue } from '../../config/env.js';
 import { sendMailDirect } from './email.transport.js';
 import type { EmailJob } from './email.types.js';
 
@@ -20,7 +20,11 @@ let queue: EmailQueue | null = null;
 export function getEmailQueue(): EmailQueue {
   if (queue) return queue;
   const env = getEnv();
-  queue = new Queue('growth-world-email', env.REDIS_URL, {
+  const redisUrl = env.REDIS_URL;
+  if (!redisUrl) {
+    throw new Error('REDIS_URL is required when EMAIL_QUEUE=bull');
+  }
+  queue = new Queue('growth-world-email', redisUrl, {
     defaultJobOptions: emailQueueDefaultJobOptions,
   });
   queue.on('failed', (job, err) => {
@@ -29,9 +33,13 @@ export function getEmailQueue(): EmailQueue {
   return queue;
 }
 
-/** In tests, send synchronously (no Redis queue). In other envs, enqueue with Bull (3 attempts). */
+function sendWithoutQueue(): boolean {
+  return process.env.NODE_ENV === 'test' || !usesBullEmailQueue();
+}
+
+/** Tests and EMAIL_QUEUE=direct send synchronously; otherwise Bull + Redis. */
 export async function enqueueEmail(job: EmailJob): Promise<void> {
-  if (process.env.NODE_ENV === 'test') {
+  if (sendWithoutQueue()) {
     await sendMailDirect(job);
     return;
   }
@@ -39,7 +47,7 @@ export async function enqueueEmail(job: EmailJob): Promise<void> {
 }
 
 export function registerEmailWorker(): void {
-  if (process.env.NODE_ENV === 'test') return;
+  if (sendWithoutQueue()) return;
   void getEmailQueue().process(JOB_NAME, async (job) => {
     await sendMailDirect(job.data as EmailJob);
   });

@@ -1,31 +1,19 @@
 import { existsSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-const serverRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const sharedRoot = resolve(serverRoot, '../shared');
-const sharedDist = resolve(sharedRoot, 'dist/index.js');
-const linkedPkg = resolve(serverRoot, 'node_modules/@growth-world/shared/package.json');
-const rootLinkedPkg = resolve(serverRoot, '../node_modules/@growth-world/shared/package.json');
+import {
+  sharedDist,
+  sharedPkg,
+  sharedRoot,
+  sharedSiblingReady,
+} from './shared-link.mjs';
 
 function fail(message) {
   console.error(`\n[prestart] ${message}\n`);
   process.exit(1);
 }
 
-if (!existsSync(sharedRoot)) {
-  fail(
-    'Missing ../shared folder. Deploy shared/ next to server/ (full monorepo), not only server/dist.',
-  );
-}
-
-if (!existsSync(linkedPkg) && !existsSync(rootLinkedPkg)) {
-  fail(
-    'Package @growth-world/shared is not installed.\n' +
-      '  From project root: npm install && npm run build -w shared\n' +
-      '  Or from server/:   npm install (requires ../shared)',
-  );
+if (!existsSync(sharedPkg)) {
+  fail('Missing ../shared folder. Deploy shared/ next to server/ on the host.');
 }
 
 if (!existsSync(sharedDist)) {
@@ -36,12 +24,10 @@ if (!existsSync(sharedDist)) {
     shell: true,
   });
   if (result.status !== 0) {
-    fail(
-      'Could not build shared/. Upload shared/dist from your machine, or install devDependencies and run: npm run build -w shared',
-    );
+    fail('Could not build shared/. Run: cd ../shared && npm install --include=dev && npm run build');
   }
 }
 
-if (!existsSync(sharedDist)) {
+if (!sharedSiblingReady()) {
   fail('shared/dist/index.js is still missing after build.');
 }
