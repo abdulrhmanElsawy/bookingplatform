@@ -4,16 +4,14 @@ import {
   Clock3,
   Dumbbell,
   Flame,
-  MapPin,
   Mars,
-  Search,
   SlidersHorizontal,
   Star,
   Waves,
 } from 'lucide-react';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 import { ListingCard } from '../../../../components/shared/ListingCard';
 import i18n from '../../../../i18n';
@@ -60,7 +58,6 @@ export function SearchPage() {
   const { t } = useTranslation('listings');
   const { t: tCommon } = useTranslation('common');
   const { t: tErrors } = useTranslation('errors');
-  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const compareItems = useCompareStore((s) => s.items);
@@ -78,17 +75,6 @@ export function SearchPage() {
   const urlCategory = searchParams.get('category') ?? '';
   const urlSort = readSort(searchParams.get('sort'));
   const urlPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
-  const searchParts = urlSearch.trim().split(/\s+/).filter(Boolean);
-  const initialCity = searchParts[0] ?? '';
-  const initialKeyword = searchParts.slice(1).join(' ');
-
-  const [mobileCity, setMobileCity] = useState(initialCity);
-  const [mobileKeyword, setMobileKeyword] = useState(initialKeyword);
-
-  useEffect(() => {
-    setMobileCity(initialCity);
-    setMobileKeyword(initialKeyword);
-  }, [initialCity, initialKeyword]);
 
   const queryParams: ListingsQueryParams = useMemo(() => {
     const hasSearch = Boolean(urlSearch.trim());
@@ -123,19 +109,6 @@ export function SearchPage() {
     setSearchParams(next);
   }
 
-  function submitMobileSearch(e: FormEvent<HTMLFormElement>): void {
-    e.preventDefault();
-    const params: Record<string, string> = {};
-    const searchValue = [mobileCity.trim(), mobileKeyword.trim()].filter(Boolean).join(' ');
-    if (searchValue) params.search = searchValue;
-    if (urlCategory) params.category = urlCategory;
-    if (urlSort) params.sort = urlSort;
-    navigate({
-      pathname: '/listings',
-      search: createSearchParams(params).toString(),
-    });
-  }
-
   function goPage(nextPage: number): void {
     const next = new URLSearchParams(searchParams);
     if (nextPage <= 1) next.delete('page');
@@ -144,32 +117,7 @@ export function SearchPage() {
   }
 
   const mobileSearchPanel = (
-    <form className={styles.mobileSearchPanel} onSubmit={submitMobileSearch}>
-      <div className={styles.mobileSearchTop}>
-        <label className={styles.mobileCityField}>
-          <MapPin size={17} strokeWidth={2.3} aria-hidden />
-          <input
-            value={mobileCity}
-            onChange={(e) => setMobileCity(e.target.value)}
-            placeholder={t('city')}
-            aria-label={t('city')}
-          />
-          <ChevronDown size={15} aria-hidden />
-        </label>
-        <label className={styles.mobileKeywordField}>
-          <input
-            type="search"
-            value={mobileKeyword}
-            onChange={(e) => setMobileKeyword(e.target.value)}
-            placeholder={t('homeSearchPlaceholder')}
-            aria-label={t('searchFieldKeyword')}
-          />
-          <button type="submit" aria-label={t('heroSearchBtn')}>
-            <Search size={20} strokeWidth={2.2} aria-hidden />
-          </button>
-        </label>
-      </div>
-
+    <div className={styles.mobileSearchPanel}>
       <div className={styles.mobileChipRow}>
         <button type="button" className={styles.mobileChip}>
           <ChevronDown size={15} aria-hidden />
@@ -229,7 +177,7 @@ export function SearchPage() {
           {t('homeSortPopular')}
         </button>
       </div>
-    </form>
+    </div>
   );
 
   return (

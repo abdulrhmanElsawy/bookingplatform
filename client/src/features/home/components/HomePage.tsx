@@ -18,7 +18,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { createSearchParams, Link, useNavigate } from 'react-router-dom';
 
-import { DealsSlider } from '../../../components/shared/DealsSlider';
 import { HorizontalCarousel } from '../../../components/shared/HorizontalCarousel';
 import { ListingCard, type ListingCardData } from '../../../components/shared/ListingCard';
 import i18n from '../../../i18n';
@@ -41,7 +40,6 @@ import {
 import { mapListingToCard } from '../../listings/utils/mapListingToCard';
 import { CategoryBrowseTile } from './CategoryBrowseTile';
 import {
-  categoryTileBackground,
   HOME_HERO_IMAGE,
   HOME_HERO_IMAGE_FALLBACK,
 } from '../data/categoryCoverImages';
@@ -156,9 +154,6 @@ export function HomePage() {
       search: createSearchParams(params).toString(),
     });
   }
-
-  const largeCities = HOME_CITIES.slice(0, 2);
-  const smallCities = HOME_CITIES.slice(2, 5);
 
   return (
     <div className={styles.root} data-testid="home-page">
@@ -401,90 +396,6 @@ export function HomePage() {
               </div>
             </div>
           </div>
-        </section>
-
-        <section className={styles.section} aria-labelledby="home-cat-types-heading">
-          <h2 id="home-cat-types-heading" className={styles.sectionTitle}>
-            {t('categoriesTitle')}
-          </h2>
-          <ul className={styles.categoryGrid}>
-            {categories.slice(0, 4).map((c) => (
-              <li key={c._id}>
-                <CategoryBrowseTile
-                  slug={c.slug}
-                  imageFromApi={c.image}
-                  labelClassName={styles.categoryTileLabel}
-                  to={{
-                    pathname: '/listings',
-                    search: createSearchParams({ category: c.slug }).toString(),
-                  }}
-                >
-                  {getLocalizedValue(c.name, currentLang)}
-                </CategoryBrowseTile>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className={styles.section} aria-labelledby="home-cities-heading">
-          <h2 id="home-cities-heading" className={styles.sectionTitle}>
-            {t('trendingCities')}
-          </h2>
-          <ul className={styles.cityGrid} data-testid="home-cities">
-            {largeCities.map((city) => (
-              <li key={city.slug} className={styles.cityLarge}>
-                <Link
-                  className={styles.cityCard}
-                  style={categoryTileBackground(city.imageUrl)}
-                  to={{
-                    pathname: '/listings',
-                    search: createSearchParams({ search: citySearchLabel(city) }).toString(),
-                  }}
-                >
-                  <span className={styles.cityCardLabel}>{citySearchLabel(city)}</span>
-                </Link>
-              </li>
-            ))}
-            {smallCities.map((city) => (
-              <li key={city.slug} className={styles.citySmall}>
-                <Link
-                  className={styles.cityCard}
-                  style={categoryTileBackground(city.imageUrl)}
-                  to={{
-                    pathname: '/listings',
-                    search: createSearchParams({ search: citySearchLabel(city) }).toString(),
-                  }}
-                >
-                  <span className={styles.cityCardLabel}>{citySearchLabel(city)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section
-          className={styles.section}
-          aria-labelledby="home-deals-heading"
-          data-testid="home-deals-section"
-        >
-          <DealsSlider
-            ariaLabel={t('dealsTitle')}
-            title={t('dealsTitle')}
-            titleId="home-deals-heading"
-          >
-            {dealsLoading
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <ListingCard key={`deal-sk-${i}`} skeleton variant="grid" />
-                ))
-              : dealListings.map((item) => (
-                  <ListingCard
-                    key={item._id}
-                    listing={mapListingToCard(item)}
-                    variant="grid"
-                    showDealPrice
-                  />
-                ))}
-          </DealsSlider>
         </section>
 
         <section className={styles.section} aria-labelledby="home-browse-heading">

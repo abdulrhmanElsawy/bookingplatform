@@ -96,14 +96,15 @@
 
 .searchTopRow {
   display: grid;
-  grid-template-columns: minmax(7.5rem, 0.45fr) minmax(0, 1fr);
-  gap: 0;
+  grid-template-columns: minmax(6.75rem, 0.75fr) 1fr;
+    gap: 0;
   overflow: hidden;
   min-block-size: 48px;
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 12px;
   background: #0b0e12;
   direction: ltr;
+  
 }
 
 .citySelectWrap,
@@ -151,10 +152,18 @@
 
 .filterRow,
 .sortRow {
-  display: grid;
-  grid-template-columns: minmax(8rem, auto) 1fr;
+  display: flex;
   gap: var(--space-3);
   align-items: center;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding-block-end: 2px;
+  scrollbar-width: none;
+}
+
+.filterRow::-webkit-scrollbar,
+.sortRow::-webkit-scrollbar {
+  display: none;
 }
 
 .rowLabel {
@@ -163,18 +172,20 @@
   justify-content: flex-start;
   gap: var(--space-2);
   min-inline-size: max-content;
+  flex: 0 0 auto;
   font-size: var(--text-xs);
   color: var(--text-muted);
-  width: 100%;
+  width: auto;
   text-align: right;
   direction: ltr;
   flex-direction: row-reverse;
 }
 .filterChips,
 .sortChips {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
   gap: var(--space-2);
+  min-inline-size: max-content;
 }
 
 .filterChip,
@@ -192,6 +203,8 @@
   color: var(--text-body);
   font-family: inherit;
   font-size: var(--text-xs);
+  flex: 0 0 auto;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     border-color var(--transition-fast),
@@ -246,30 +259,8 @@
   }
 
   .searchTopRow {
-    grid-template-columns: minmax(6.75rem, 0.58fr) 1fr;
-  }
-
-  .filterRow,
-  .sortRow {
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
-  }
-
-  .rowLabel {
-    justify-self: end;
-  }
-
-  .filterChips {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .sortRow {
-    grid-template-columns: minmax(7rem, auto) 1fr;
-  }
-
-  .sortChips {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+    grid-template-columns: minmax(6.75rem, 0.75fr) 1fr;
+    }
 }
 
 .content {

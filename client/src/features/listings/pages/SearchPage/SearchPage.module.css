@@ -338,79 +338,20 @@
   }
 }
 
-.mobileSearchTop {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, 0.36fr) minmax(0, 1fr);
-  gap: 0;
-  min-block-size: 48px;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 12px;
-  background: #0b0e12;
-  direction: ltr;
-}
-
-.mobileCityField,
-.mobileKeywordField {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-inline-size: 0;
-  padding-inline: var(--space-3);
-  direction: rtl;
-}
-
-.mobileCityField {
-  border-inline-end: 1px solid rgb(255 255 255 / 0.08);
-  color: var(--text-muted);
-}
-
-.mobileCityField input,
-.mobileKeywordField input {
-  min-inline-size: 0;
-  inline-size: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text-body);
-  font: inherit;
-  font-size: var(--text-sm);
-}
-
-.mobileKeywordField input {
-  text-align: end;
-}
-
-.mobileKeywordField input::placeholder,
-.mobileCityField input::placeholder {
-  color: var(--text-muted);
-}
-
-.mobileKeywordField button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 36px;
-  block-size: 36px;
-  border: 0;
-  border-radius: 10px;
-  background: rgb(255 255 255 / 0.035);
-  color: var(--text-body);
-  cursor: pointer;
-}
-
 .mobileChipRow,
 .mobileSortRow {
-  display: grid;
+  display: flex;
+  flex-wrap: nowrap;
   gap: var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding-block-end: 2px;
+  scrollbar-width: none;
 }
 
-.mobileChipRow {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.mobileSortRow {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+.mobileChipRow::-webkit-scrollbar,
+.mobileSortRow::-webkit-scrollbar {
+  display: none;
 }
 
 .mobileChip {
@@ -419,8 +360,9 @@
   justify-content: center;
   gap: 5px;
   min-block-size: 42px;
-  min-inline-size: 0;
-  padding: var(--space-2);
+  min-inline-size: max-content;
+  flex: 0 0 auto;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 10px;
   background: rgb(5 7 9 / 0.72);
@@ -436,13 +378,6 @@
   background: linear-gradient(180deg, #8bdc2e, var(--color-brand));
   color: var(--btn-primary-text);
   font-weight: var(--font-bold);
-}
-
-@media (max-width: 420px) {
-  .mobileChipRow,
-  .mobileSortRow {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 .empty {
