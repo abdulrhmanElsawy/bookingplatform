@@ -1,29 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
-import { SlidersHorizontal } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import {
+  ChevronDown,
+  Clock3,
+  Dumbbell,
+  Flame,
+  MapPin,
+  Mars,
+  Search,
+  SlidersHorizontal,
+  Star,
+  Waves,
+} from 'lucide-react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { ListingCard } from '../../../../components/shared/ListingCard';
-import { SelectField } from '../../../../components/shared/SelectField';
 import i18n from '../../../../i18n';
 import { useSEO } from '../../../../hooks/useSEO';
-import { useLanguage } from '../../../../hooks/useLanguage';
-import { ListingsSearchStrip } from '../../components/ListingsSearchStrip/ListingsSearchStrip';
+import { COMPARE_MAX_ITEMS, useCompareStore } from '../../../compare/compareStore';
 import {
-  fetchCategories,
   fetchListings,
   type ListingsQueryParams,
-  type ListingListItemDto,
 } from '../../api/listingsApi';
 import { mapListingToCard } from '../../utils/mapListingToCard';
 import { getApiErrorMessage } from '../../../../utils/apiErrorMessage';
-import { SearchFiltersPanel } from './SearchFiltersPanel';
 import styles from './SearchPage.module.css';
-
-const DESKTOP_QUERY = '(min-width: 900px)';
-const DEFAULT_MAX_PRICE = 2000;
 
 type SortValue =
   | ''
@@ -54,58 +56,15 @@ function toApiSort(sort: SortValue, hasSearch: boolean): string | undefined {
   return undefined;
 }
 
-function getMinPrice(item: ListingListItemDto): number {
-  const prices = (item.packages ?? []).map((p) => p.price).filter((p) => p > 0);
-  return prices.length ? Math.min(...prices) : 0;
-}
-
-function useDesktopFilters(): boolean {
-  const [desktop, setDesktop] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia(DESKTOP_QUERY).matches : true,
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia(DESKTOP_QUERY);
-    const onChange = () => setDesktop(mq.matches);
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  return desktop;
-}
-
-function countActiveFilters(
-  maxPrice: number,
-  filterVerified: boolean,
-  filterStars: number[],
-  filterCategories: string[],
-  urlCategory: string,
-): number {
-  let count = 0;
-  if (filterVerified) count += 1;
-  count += filterStars.length;
-  if (maxPrice < DEFAULT_MAX_PRICE) count += 1;
-  const baseline = urlCategory ? [urlCategory] : [];
-  const extraCats = filterCategories.filter((c) => !baseline.includes(c)).length;
-  const missingBaseline = baseline.some((c) => !filterCategories.includes(c));
-  if (extraCats > 0 || (baseline.length === 0 && filterCategories.length > 0)) {
-    count += extraCats || filterCategories.length;
-  } else if (missingBaseline) {
-    count += 1;
-  }
-  return count;
-}
-
 export function SearchPage() {
   const { t } = useTranslation('listings');
   const { t: tCommon } = useTranslation('common');
   const { t: tErrors } = useTranslation('errors');
-  const { currentLang } = useLanguage();
+  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const desktop = useDesktopFilters();
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const compareItems = useCompareStore((s) => s.items);
+  const toggleCompareItem = useCompareStore((s) => s.toggleItem);
 
   useSEO({
     titleAr: `${i18n.getFixedT('ar')('listings:searchTitle')} — ${i18n.getFixedT('ar')('common:appName')}`,
@@ -119,49 +78,17 @@ export function SearchPage() {
   const urlCategory = searchParams.get('category') ?? '';
   const urlSort = readSort(searchParams.get('sort'));
   const urlPage = Math.max(1, Number(searchParams.get('page') || 1) || 1);
+  const searchParts = urlSearch.trim().split(/\s+/).filter(Boolean);
+  const initialCity = searchParts[0] ?? '';
+  const initialKeyword = searchParts.slice(1).join(' ');
 
-  const [draftSort, setDraftSort] = useState<SortValue>(urlSort);
-  const [view, setView] = useState<'list' | 'grid'>('list');
-  const [maxPrice, setMaxPrice] = useState(DEFAULT_MAX_PRICE);
-  const [filterVerified, setFilterVerified] = useState(false);
-  const [filterStars, setFilterStars] = useState<number[]>([]);
-  const [filterCategories, setFilterCategories] = useState<string[]>(
-    urlCategory ? [urlCategory] : [],
-  );
+  const [mobileCity, setMobileCity] = useState(initialCity);
+  const [mobileKeyword, setMobileKeyword] = useState(initialKeyword);
 
   useEffect(() => {
-    setDraftSort(urlSort);
-    setFilterCategories(urlCategory ? [urlCategory] : []);
-  }, [urlSort, urlCategory]);
-
-  useEffect(() => {
-    if (desktop) setFiltersOpen(false);
-  }, [desktop]);
-
-  useEffect(() => {
-    if (!filtersOpen || desktop) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [filtersOpen, desktop]);
-
-  useEffect(() => {
-    if (!filtersOpen || desktop) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFiltersOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [filtersOpen, desktop]);
-
-  const closeFilters = useCallback(() => setFiltersOpen(false), []);
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-  });
+    setMobileCity(initialCity);
+    setMobileKeyword(initialKeyword);
+  }, [initialCity, initialKeyword]);
 
   const queryParams: ListingsQueryParams = useMemo(() => {
     const hasSearch = Boolean(urlSearch.trim());
@@ -186,41 +113,7 @@ export function SearchPage() {
   const hasMore = urlPage * limit < total;
   const hasPrev = urlPage > 1;
 
-  const amenityCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const item of listings) {
-      for (const a of item.amenities ?? []) {
-        counts[a] = (counts[a] ?? 0) + 1;
-      }
-    }
-    return counts;
-  }, [listings]);
-
-  const filteredListings = useMemo(() => {
-    return listings.filter((item) => {
-      if (filterVerified && !item.isVerified) return false;
-      const minP = getMinPrice(item);
-      if (minP > maxPrice) return false;
-      if (filterStars.length > 0) {
-        const bucket = Math.round(item.averageRating ?? 0);
-        if (!filterStars.includes(bucket)) return false;
-      }
-      if (filterCategories.length > 0 && item.category?.slug) {
-        if (!filterCategories.includes(item.category.slug)) return false;
-      }
-      return true;
-    });
-  }, [listings, filterVerified, maxPrice, filterStars, filterCategories]);
-
-  const verifiedCount = listings.filter((l) => l.isVerified).length;
-
-  const activeFilterCount = countActiveFilters(
-    maxPrice,
-    filterVerified,
-    filterStars,
-    filterCategories,
-    urlCategory,
-  );
+  const filteredListings = listings;
 
   function applySort(sort: SortValue): void {
     const next = new URLSearchParams(searchParams);
@@ -230,6 +123,19 @@ export function SearchPage() {
     setSearchParams(next);
   }
 
+  function submitMobileSearch(e: FormEvent<HTMLFormElement>): void {
+    e.preventDefault();
+    const params: Record<string, string> = {};
+    const searchValue = [mobileCity.trim(), mobileKeyword.trim()].filter(Boolean).join(' ');
+    if (searchValue) params.search = searchValue;
+    if (urlCategory) params.category = urlCategory;
+    if (urlSort) params.sort = urlSort;
+    navigate({
+      pathname: '/listings',
+      search: createSearchParams(params).toString(),
+    });
+  }
+
   function goPage(nextPage: number): void {
     const next = new URLSearchParams(searchParams);
     if (nextPage <= 1) next.delete('page');
@@ -237,123 +143,107 @@ export function SearchPage() {
     setSearchParams(next);
   }
 
-  function toggleStar(star: number): void {
-    setFilterStars((prev) =>
-      prev.includes(star) ? prev.filter((s) => s !== star) : [...prev, star],
-    );
-  }
+  const mobileSearchPanel = (
+    <form className={styles.mobileSearchPanel} onSubmit={submitMobileSearch}>
+      <div className={styles.mobileSearchTop}>
+        <label className={styles.mobileCityField}>
+          <MapPin size={17} strokeWidth={2.3} aria-hidden />
+          <input
+            value={mobileCity}
+            onChange={(e) => setMobileCity(e.target.value)}
+            placeholder={t('city')}
+            aria-label={t('city')}
+          />
+          <ChevronDown size={15} aria-hidden />
+        </label>
+        <label className={styles.mobileKeywordField}>
+          <input
+            type="search"
+            value={mobileKeyword}
+            onChange={(e) => setMobileKeyword(e.target.value)}
+            placeholder={t('homeSearchPlaceholder')}
+            aria-label={t('searchFieldKeyword')}
+          />
+          <button type="submit" aria-label={t('heroSearchBtn')}>
+            <Search size={20} strokeWidth={2.2} aria-hidden />
+          </button>
+        </label>
+      </div>
 
-  function toggleCategory(slug: string): void {
-    setFilterCategories((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
-    );
-  }
+      <div className={styles.mobileChipRow}>
+        <button type="button" className={styles.mobileChip}>
+          <ChevronDown size={15} aria-hidden />
+          {t('homeDurationMonth')}
+        </button>
+        <button type="button" className={styles.mobileChip}>
+          <Mars size={16} aria-hidden />
+          {t('homeFilterMen')}
+        </button>
+        <button type="button" className={styles.mobileChip}>
+          <Clock3 size={16} aria-hidden />
+          {t('homeFilter24h')}
+        </button>
+        <button type="button" className={styles.mobileChip}>
+          <Waves size={16} aria-hidden />
+          {t('homeFilterPool')}
+        </button>
+        <button
+          type="button"
+          className={styles.mobileChip}
+        >
+          <SlidersHorizontal size={16} aria-hidden />
+          {t('homeFilterMore')}
+        </button>
+      </div>
 
-  function clearAllFilters(): void {
-    setMaxPrice(DEFAULT_MAX_PRICE);
-    setFilterVerified(false);
-    setFilterStars([]);
-    setFilterCategories(urlCategory ? [urlCategory] : []);
-  }
-
-  const filtersPanelProps = {
-    t,
-    tCommon,
-    currentLang,
-    categories,
-    amenityCounts,
-    verifiedCount,
-    maxPrice,
-    onMaxPriceChange: setMaxPrice,
-    filterVerified,
-    onFilterVerifiedChange: setFilterVerified,
-    filterStars,
-    onToggleStar: toggleStar,
-    filterCategories,
-    onToggleCategory: toggleCategory,
-  };
-
-  const sortControl = (
-    <SelectField
-      className={styles.sortWrap}
-      size="pill"
-      aria-label={t('sortBy')}
-      value={draftSort}
-      onChange={(next) => {
-        const v = readSort(next);
-        setDraftSort(v);
-        applySort(v);
-      }}
-      options={[
-        { value: '', label: t('sortRecommended') },
-        { value: 'relevance', label: t('sortRelevance') },
-        { value: 'rating', label: t('sortRating') },
-        { value: 'newest', label: t('sortNewest') },
-        { value: 'price_low', label: t('sortPriceLow') },
-        { value: 'price_high', label: t('sortPriceHigh') },
-      ]}
-    />
-  );
-
-  const viewToggle = (
-    <div className={styles.viewToggle}>
-      <button
-        type="button"
-        className={`${styles.viewBtn} ${view === 'list' ? styles.viewActive : ''}`}
-        onClick={() => setView('list')}
-      >
-        {t('listView')}
-      </button>
-      <button
-        type="button"
-        className={`${styles.viewBtn} ${view === 'grid' ? styles.viewActive : ''}`}
-        onClick={() => setView('grid')}
-      >
-        {tCommon('gridView')}
-      </button>
-    </div>
+      <div className={styles.mobileSortRow}>
+        <button type="button" className={styles.mobileChip}>
+          <ChevronDown size={15} aria-hidden />
+          {t('sortBy')}
+        </button>
+        <button
+          type="button"
+          className={styles.mobileChip}
+          onClick={() => applySort('distance')}
+        >
+          {t('sortDistance')}
+        </button>
+        <button
+          type="button"
+          className={styles.mobileChip}
+          onClick={() => applySort('rating')}
+        >
+          <Star size={15} aria-hidden />
+          {t('homeSortRated')}
+        </button>
+        <button
+          type="button"
+          className={`${styles.mobileChip} ${urlSort === 'price_low' ? styles.mobileChipActive : ''}`}
+          onClick={() => applySort('price_low')}
+        >
+          <Dumbbell size={15} aria-hidden />
+          {t('homeSortCheapest')}
+        </button>
+        <button type="button" className={styles.mobileChip}>
+          <Flame size={15} aria-hidden />
+          {t('homeSortPopular')}
+        </button>
+      </div>
+    </form>
   );
 
   return (
     <>
-      <ListingsSearchStrip />
+      {mobileSearchPanel}
       <div className={styles.layout} data-testid="search-page">
-        {desktop ? (
-          <aside className={styles.sidebar} aria-label={t('filterBy')}>
-            <SearchFiltersPanel {...filtersPanelProps} />
-          </aside>
-        ) : null}
-
         <section className={styles.results}>
           <div className={styles.resultsHeader}>
-            <h1 className={styles.resultsTitle}>{t('showingResults', { count: total })}</h1>
-
-            {!desktop ? (
-              <div className={styles.mobileToolbar}>
-                <button
-                  type="button"
-                  className={styles.filtersBtn}
-                  aria-expanded={filtersOpen}
-                  onClick={() => setFiltersOpen(true)}
-                  data-testid="search-filters-toggle"
-                >
-                  <SlidersHorizontal size={18} strokeWidth={2} aria-hidden />
-                  <span>{t('filters')}</span>
-                  {activeFilterCount > 0 ? (
-                    <span className={styles.filtersBadge} aria-label={String(activeFilterCount)}>
-                      {activeFilterCount}
-                    </span>
-                  ) : null}
-                </button>
-                {sortControl}
-                {viewToggle}
-              </div>
-            ) : (
-              <div className={styles.toolbar}>
-                {sortControl}
-                {viewToggle}
-              </div>
-            )}
+            <div className={styles.resultsTitleRow}>
+              <h1 className={styles.resultsTitle}>{t('searchResults')}</h1>
+              <p className={styles.resultsCount}>
+                {t('searchFoundPrefix')} <strong>{total}</strong> {t('searchFoundSuffix')}
+              </p>
+            </div>
           </div>
 
           {isError ? (
@@ -366,9 +256,9 @@ export function SearchPage() {
           ) : null}
 
           {isLoading ? (
-            <div className={view === 'grid' ? styles.grid : styles.list}>
+            <div className={styles.list}>
               {Array.from({ length: 6 }).map((_, i) => (
-                <ListingCard key={i} skeleton variant={view === 'grid' ? 'grid' : 'list'} />
+                <ListingCard key={i} skeleton variant="list" />
               ))}
             </div>
           ) : filteredListings.length === 0 ? (
@@ -377,18 +267,25 @@ export function SearchPage() {
               <p className={styles.emptyDesc}>{t('noResultsDesc')}</p>
             </div>
           ) : (
-            <div
-              className={view === 'grid' ? styles.grid : styles.list}
-              data-testid="search-results"
-            >
-              {filteredListings.map((item) => (
-                <ListingCard
-                  key={item._id}
-                  listing={mapListingToCard(item)}
-                  variant={view === 'grid' ? 'grid' : 'list'}
-                  showDealPrice={item.isFeatured}
-                />
-              ))}
+            <div className={styles.list} data-testid="search-results">
+              {filteredListings.map((item) => {
+                const cardListing = mapListingToCard(item);
+                const selected = compareItems.some((compareItem) => compareItem.slug === cardListing.slug);
+                const disabled = !selected && compareItems.length >= COMPARE_MAX_ITEMS;
+                return (
+                  <ListingCard
+                    key={item._id}
+                    listing={cardListing}
+                    variant="list"
+                    showDealPrice={item.isFeatured}
+                    compare={{
+                      selected,
+                      disabled,
+                      onToggle: () => toggleCompareItem(cardListing),
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -409,62 +306,6 @@ export function SearchPage() {
         </section>
       </div>
 
-      {!desktop && typeof document !== 'undefined'
-        ? createPortal(
-            <>
-              <button
-                type="button"
-                className={`${styles.filterSheetBackdrop} ${filtersOpen ? styles.filterSheetBackdropVisible : ''}`}
-                aria-hidden={!filtersOpen}
-                tabIndex={filtersOpen ? 0 : -1}
-                onClick={closeFilters}
-                aria-label={tCommon('close')}
-                data-testid="search-filters-backdrop"
-              />
-              <div
-                className={`${styles.filterSheet} ${filtersOpen ? styles.filterSheetOpen : ''}`}
-                role="dialog"
-                aria-modal="true"
-                aria-label={t('filterBy')}
-                aria-hidden={!filtersOpen}
-                data-testid="search-filters-sheet"
-              >
-                <div className={styles.filterSheetHeader}>
-                  <h2 className={styles.filterSheetTitle}>{t('filters')}</h2>
-                  <button
-                    type="button"
-                    className={styles.filterSheetClose}
-                    onClick={closeFilters}
-                    aria-label={tCommon('close')}
-                  >
-                    ×
-                  </button>
-                </div>
-                <div className={styles.filterSheetBody}>
-                  <SearchFiltersPanel {...filtersPanelProps} compact />
-                </div>
-                <div className={styles.filterSheetFooter}>
-                  <button
-                    type="button"
-                    className={`btnSecondary ${styles.filterSheetAction}`}
-                    onClick={clearAllFilters}
-                    disabled={activeFilterCount === 0}
-                  >
-                    {t('clearFilters')}
-                  </button>
-                  <button
-                    type="button"
-                    className={`btnPrimary ${styles.filterSheetAction}`}
-                    onClick={closeFilters}
-                  >
-                    {t('applyFilters')}
-                  </button>
-                </div>
-              </div>
-            </>,
-            document.body,
-          )
-        : null}
     </>
   );
 }

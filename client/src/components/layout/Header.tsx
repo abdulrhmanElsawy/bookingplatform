@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, CircleHelp } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate, createSearchParams } from 'react-router-dom';
 
@@ -23,24 +23,6 @@ import { useListYourGymPath } from '../../hooks/useListYourGymPath';
 import { useAuthStore } from '../../store/authStore';
 import type { SessionUser } from '../../store/authStore';
 import styles from './Header.module.css';
-
-const WIDE_QUERY = '(min-width: 768px)';
-
-function useWideHeader() {
-  const [wide, setWide] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia(WIDE_QUERY).matches : true,
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia(WIDE_QUERY);
-    const onChange = () => setWide(mq.matches);
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  return wide;
-}
 
 function initialsFromUser(user: SessionUser): string {
   const a = user.firstName?.trim()?.charAt(0) ?? '';
@@ -322,8 +304,10 @@ function CategoryNavRow({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav className={styles.headerNav} aria-label={t('categories')}>
       <div className={styles.categoryScroll}>
-        {CATEGORY_PILLS.map((pill) => {
-          const active = activeCategory === pill.slug;
+        {CATEGORY_PILLS.slice(0, 4).map((pill) => {
+          const active =
+            activeCategory === pill.slug ||
+            (!activeCategory && location.pathname === '/' && pill.slug === 'gyms');
           return (
             <Link
               key={pill.slug}
@@ -350,98 +334,22 @@ function CategoryNavRow({ onNavigate }: { onNavigate?: () => void }) {
       >
         {t('search')}
       </Link>
+      <Link
+        className={styles.navSearchLink}
+        to="/compare"
+        onClick={onNavigate}
+        data-testid="nav-compare"
+      >
+        {t('bottomNavCompare')}
+      </Link>
     </nav>
   );
-}
-
-function HeaderTopAuth({
-  wide,
-  onNavigate,
-}: {
-  wide: boolean;
-  onNavigate?: () => void;
-}) {
-  const { t: tAuth } = useTranslation('auth');
-  const { t: tNotif } = useTranslation('notifications');
-  const sessionStatus = useAuthStore((s) => s.sessionStatus);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hydrateFromServer = useAuthStore((s) => s.hydrateFromServer);
-
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['notifications-unread'],
-    queryFn: getUnreadNotificationCount,
-    enabled: isAuthenticated && sessionStatus === 'ready',
-    refetchInterval: 60_000,
-    staleTime: 30_000,
-  });
-
-  useEffect(() => {
-    if (sessionStatus === 'pending') {
-      void hydrateFromServer();
-    }
-  }, [sessionStatus, hydrateFromServer]);
-
-  if (sessionStatus === 'pending') {
-    return <AuthSkeleton testId="nav-auth-skeleton" />;
-  }
-
-  if (sessionStatus === 'ready' && isAuthenticated) {
-    return wide ? (
-      <>
-        <Link
-          className={styles.navLinkWithBadge}
-          to="/account/notifications"
-          onClick={onNavigate}
-          data-testid="nav-notifications"
-          aria-label={
-            unreadCount > 0
-              ? tNotif('unreadNavLabel', { count: unreadCount })
-              : tNotif('notificationsTitle')
-          }
-        >
-          <Bell size={20} strokeWidth={2} aria-hidden />
-          {unreadCount > 0 ? (
-            <span className={styles.badge} data-testid="nav-notifications-badge">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          ) : null}
-        </Link>
-        <UserMenu variant="desktop" onNavigate={onNavigate} />
-      </>
-    ) : null;
-  }
-
-  if (sessionStatus === 'ready' && !isAuthenticated && wide) {
-    return (
-      <>
-        <Link
-          className={styles.registerBtn}
-          to="/register"
-          onClick={onNavigate}
-          data-testid="nav-register"
-        >
-          {tAuth('signUpCta')}
-        </Link>
-        <Link
-          className={styles.signInBtn}
-          to="/login"
-          onClick={onNavigate}
-          data-testid="nav-login"
-        >
-          {tAuth('signInCta')}
-        </Link>
-      </>
-    );
-  }
-
-  return null;
 }
 
 export function Header() {
   const { t } = useTranslation('common');
   const { t: tAuth } = useTranslation('auth');
   const location = useLocation();
-  const wide = useWideHeader();
   const [menuOpen, setMenuOpen] = useState(false);
   const drawerId = useId();
   const drawerTitleId = useId();
@@ -449,6 +357,14 @@ export function Header() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hydrateFromServer = useAuthStore((s) => s.hydrateFromServer);
   const listYourGymPath = useListYourGymPath();
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['notifications-unread', 'header-shell'],
+    queryFn: getUnreadNotificationCount,
+    enabled: isAuthenticated && sessionStatus === 'ready',
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
@@ -463,13 +379,13 @@ export function Header() {
   }, [sessionStatus, hydrateFromServer]);
 
   useEffect(() => {
-    if (!menuOpen || wide) return;
+    if (!menuOpen) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, [menuOpen, wide]);
+  }, [menuOpen]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -483,25 +399,19 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerTop}>
+        <Link
+          className={styles.headerBell}
+          to={isAuthenticated ? '/account/notifications' : '/login'}
+          aria-label={t('notifications')}
+          data-testid="header-notifications"
+        >
+          <Bell size={23} strokeWidth={2} aria-hidden />
+          {unreadCount > 0 ? <span className={styles.headerBellDot} /> : null}
+        </Link>
         <Link to="/" className={styles.brand} data-testid="header-brand">
           <BrandLogo variant="header" />
         </Link>
         <div className={styles.headerActions}>
-          {wide ? (
-            <>
-              <button type="button" className={styles.currencyBtn} aria-label={t('currencySar')}>
-                {t('currencySar')}
-              </button>
-              <a className={styles.helpBtn} href="#" onClick={(e) => e.preventDefault()} aria-label={t('help')}>
-                <CircleHelp size={16} strokeWidth={2} aria-hidden />
-              </a>
-              <Link className={styles.listGymBtn} to={listYourGymPath} data-testid="nav-list-your-gym">
-                {t('listYourGym')}
-              </Link>
-              <HeaderTopAuth wide={wide} />
-              <HeaderLangToggle />
-            </>
-          ) : null}
           <button
             type="button"
             className={styles.menuButton}
@@ -522,10 +432,9 @@ export function Header() {
         </div>
       </div>
 
-      <CategoryNavRow onNavigate={wide ? undefined : closeMenu} />
+      <CategoryNavRow onNavigate={closeMenu} />
 
-      {!wide
-        ? createPortal(
+      {createPortal(
             <>
               {menuOpen ? (
                 <button
@@ -546,9 +455,12 @@ export function Header() {
                 data-testid="header-mobile-drawer"
               >
         <div className={styles.drawerHeader}>
-          <span id={drawerTitleId} className={styles.drawerTitle}>
-            {t('mainNav')}
-          </span>
+          <div className={styles.drawerBrandBlock}>
+            <BrandLogo variant="header" />
+            <span id={drawerTitleId} className={styles.drawerTitle}>
+              {t('mainNav')}
+            </span>
+          </div>
           <button
             type="button"
             className={styles.drawerClose}
@@ -564,6 +476,14 @@ export function Header() {
             {t('currencySar')}
           </button>
           <span className={styles.drawerLink}>{t('help')}</span>
+          <Link
+            className={styles.drawerLink}
+            to="/compare"
+            onClick={closeMenu}
+            data-testid="drawer-compare"
+          >
+            {t('bottomNavCompare')}
+          </Link>
           <Link
             className={styles.drawerLink}
             to={listYourGymPath}
@@ -596,8 +516,7 @@ export function Header() {
               </div>
             </>,
             document.body,
-          )
-        : null}
+          )}
     </header>
   );
 }

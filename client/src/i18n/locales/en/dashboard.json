@@ -136,5 +136,16 @@
   "listingAwaitingApproval": "Awaiting admin approval before going live.",
   "listingRejectionReason": "Rejection reason",
   "listingUpdatedAt": "Last updated {{date}}",
-  "ownerWelcomeBanner": "Welcome! Add your first venue or manage listings below."
+  "ownerWelcomeBanner": "Welcome! Add your first venue or manage listings below.",
+  "branchesTitle": "Branches",
+  "branchesHint": "Add your venue branches. If none are added, the main location will be used as a single branch.",
+  "branchNumber": "Branch {{number}}",
+  "branchMain": "Main branch",
+  "branchRemove": "Remove branch",
+  "branchAdd": "Add branch",
+  "branchNameAr": "Branch name (Arabic)",
+  "branchNameEn": "Branch name (English)",
+  "branchPhone": "Branch phone",
+  "branchWhatsapp": "Branch WhatsApp",
+  "branchValidation": "Complete branch name and Google Maps link for each active branch."
 }

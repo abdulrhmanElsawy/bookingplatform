@@ -11,9 +11,10 @@ import styles from './FavoriteButton.module.css';
 
 export type FavoriteButtonProps = {
   listingSlug: string;
+  className?: string;
 };
 
-export function FavoriteButton({ listingSlug }: FavoriteButtonProps) {
+export function FavoriteButton({ listingSlug, className }: FavoriteButtonProps) {
   const { t } = useTranslation('profile');
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -50,7 +51,7 @@ export function FavoriteButton({ listingSlug }: FavoriteButtonProps) {
   return (
     <button
       type="button"
-      className={favorited ? styles.btnActive : styles.btn}
+      className={`${favorited ? styles.btnActive : styles.btn} ${className ?? ''}`.trim()}
       title={title}
       aria-label={title}
       aria-pressed={favorited}

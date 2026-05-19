@@ -78,6 +78,23 @@ const operatingHours = z
   })
   .optional();
 
+const listingBranch = z.object({
+  name: bilingualReq,
+  address: bilingualReq,
+  city: bilingualReq,
+  district: bilingualReq,
+  googleMapsUrl: z.string().url().min(1),
+  coordinates: geoPoint.optional(),
+  phone: z.string().optional(),
+  whatsapp: z.string().optional(),
+  images: z.array(listingImage).optional(),
+  operatingHours,
+  is24Hours: z.boolean().optional(),
+  isMain: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
+});
+
 const contact = z
   .object({
     phone: z.string().optional(),
@@ -107,6 +124,7 @@ export const CreateListingBodySchema = z.object({
   description: bilingualReq,
   shortDescription: bilingualReq,
   location: listingLocation,
+  branches: z.array(listingBranch).optional(),
   images: z.array(listingImage).optional(),
   videos: z.array(listingVideo).optional(),
   virtualTourUrl: z.string().optional(),
@@ -136,6 +154,7 @@ export const UpdateListingBodySchema = z
     description: bilingualReq.optional(),
     shortDescription: bilingualReq.optional(),
     location: listingLocation.optional(),
+    branches: z.array(listingBranch).optional(),
     images: z.array(listingImage).optional(),
     videos: z.array(listingVideo).optional(),
     virtualTourUrl: z.string().optional(),

@@ -1,0 +1,99 @@
+.root {
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-6);
+  border-block-start: 1px solid var(--border-subtle);
+}
+
+.header h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.header p {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.card {
+  margin-block-end: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--page-bg) 60%, var(--card-bg));
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mainLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.removeBtn,
+.addBtn {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.removeBtn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-error, #f87171);
+}
+
+.addBtn {
+  inline-size: 100%;
+  padding: var(--space-3);
+  font-weight: var(--font-semibold);
+}
+
+.row2 {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .row2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+
+.field label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  background: var(--card-bg);
+  color: var(--text-body);
+}

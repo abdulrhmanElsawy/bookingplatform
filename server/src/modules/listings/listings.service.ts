@@ -12,6 +12,10 @@ import type { UserRole } from '../users/user.model.js';
 import { User } from '../users/user.model.js';
 
 import { Listing } from './listing.model.js';
+import {
+  assertBranchesValid,
+  normalizeListingBranches,
+} from './listingBranches.js';
 import { normalizeListingLocation } from './listingLocation.js';
 import type {
   CreateListingBody,
@@ -266,9 +270,16 @@ export async function createListing(
 
   const normalizedLocation = await normalizeListingLocation(lang, body.location);
 
+  let normalizedBranches: Awaited<ReturnType<typeof normalizeListingBranches>> = [];
+  if (body.branches?.length) {
+    assertBranchesValid(lang, body.branches);
+    normalizedBranches = await normalizeListingBranches(lang, body.branches);
+  }
+
   const doc = {
     ...body,
     location: normalizedLocation,
+    branches: normalizedBranches,
     owner: user.id,
     slug,
     status,
@@ -345,6 +356,11 @@ export async function updateListing(
 
   if (patch.location) {
     patch.location = await normalizeListingLocation(lang, patch.location);
+  }
+
+  if (patch.branches) {
+    assertBranchesValid(lang, patch.branches);
+    patch.branches = await normalizeListingBranches(lang, patch.branches);
   }
 
   Object.assign(listing, patch);

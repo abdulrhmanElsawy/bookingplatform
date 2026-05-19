@@ -109,5 +109,10 @@
   "keyword": "Keyword",
   "allCategories": "All categories",
   "cityPlaceholder": "City or area",
-  "keywordPlaceholder": "Venue name or keyword"
+  "keywordPlaceholder": "Venue name or keyword",
+  "bottomNavLabel": "Quick links",
+  "bottomNavAccount": "Account",
+  "bottomNavFavorites": "Favorites",
+  "bottomNavHome": "Home",
+  "bottomNavCompare": "Comparisons"
 }

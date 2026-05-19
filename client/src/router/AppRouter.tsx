@@ -46,6 +46,11 @@ const ListingDetailPage = lazy(() =>
     default: m.ListingDetailPage,
   })),
 );
+const ComparePage = lazy(() =>
+  import('../features/compare/pages/ComparePage/ComparePage').then((m) => ({
+    default: m.ComparePage,
+  })),
+);
 const FavoritesPage = lazy(() =>
   import('../features/favorites/pages/FavoritesPage/FavoritesPage').then((m) => ({
     default: m.FavoritesPage,
@@ -199,6 +204,7 @@ export function AppRouter() {
           <Route path="/" element={<HomePage />} />
           <Route path="listings" element={<SearchPage />} />
           <Route path="listings/:slug" element={<ListingDetailPage />} />
+          <Route path="compare" element={<ComparePage />} />
           <Route
             path="listings/:slug/checkout"
             element={

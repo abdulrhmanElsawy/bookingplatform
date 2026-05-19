@@ -85,6 +85,43 @@ export type ListingsListResponse = {
   limit: number;
 };
 
+export type ListingOperatingHoursDto = Partial<
+  Record<
+    | 'sunday'
+    | 'monday'
+    | 'tuesday'
+    | 'wednesday'
+    | 'thursday'
+    | 'friday'
+    | 'saturday',
+    { isOpen?: boolean; open?: string; close?: string }
+  >
+>;
+
+export type ListingBranchDto = {
+  _id?: string;
+  name: BilingualField;
+  address: BilingualField;
+  city: BilingualField;
+  district: BilingualField;
+  googleMapsUrl?: string;
+  coordinates?: { type: 'Point'; coordinates: [number, number] };
+  phone?: string;
+  whatsapp?: string;
+  images?: {
+    url: string;
+    publicId?: string;
+    alt?: BilingualField;
+    isMain?: boolean;
+    order?: number;
+  }[];
+  operatingHours?: ListingOperatingHoursDto;
+  is24Hours?: boolean;
+  isMain?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
+};
+
 export type ListingDetailDto = {
   _id: string;
   slug: string;
@@ -98,6 +135,7 @@ export type ListingDetailDto = {
     googleMapsUrl?: string;
     coordinates?: { type: 'Point'; coordinates: [number, number] };
   };
+  branches?: ListingBranchDto[];
   images?: {
     url: string;
     publicId?: string;
@@ -128,18 +166,7 @@ export type ListingDetailDto = {
     snapchat: string;
     twitter: string;
   }>;
-  operatingHours?: Partial<
-    Record<
-      | 'sunday'
-      | 'monday'
-      | 'tuesday'
-      | 'wednesday'
-      | 'thursday'
-      | 'friday'
-      | 'saturday',
-      { isOpen?: boolean; open?: string; close?: string }
-    >
-  >;
+  operatingHours?: ListingOperatingHoursDto;
   is24Hours?: boolean;
   averageRating?: number;
   totalReviews?: number;
@@ -231,6 +258,31 @@ export type CreateListingPackagePayload = {
   isActive?: boolean;
 };
 
+export type CreateListingImagePayload = {
+  url: string;
+  publicId?: string;
+  isMain?: boolean;
+  order?: number;
+  alt: BilingualField;
+};
+
+export type CreateListingBranchPayload = {
+  name: BilingualField;
+  address: BilingualField;
+  city: BilingualField;
+  district: BilingualField;
+  googleMapsUrl: string;
+  coordinates?: { type: 'Point'; coordinates: [number, number] };
+  phone?: string;
+  whatsapp?: string;
+  images?: CreateListingImagePayload[];
+  operatingHours?: ListingOperatingHoursDto;
+  is24Hours?: boolean;
+  isMain?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
+};
+
 export type CreateListingPayload = {
   category: string;
   name: BilingualField;
@@ -243,13 +295,8 @@ export type CreateListingPayload = {
     googleMapsUrl: string;
     coordinates?: { type: 'Point'; coordinates: [number, number] };
   };
-  images?: {
-    url: string;
-    publicId?: string;
-    isMain?: boolean;
-    order?: number;
-    alt: BilingualField;
-  }[];
+  branches?: CreateListingBranchPayload[];
+  images?: CreateListingImagePayload[];
   videos?: { url: string; thumbnail?: string }[];
   virtualTourUrl?: string;
   amenities?: string[];
@@ -265,7 +312,7 @@ export type CreateListingPayload = {
     snapchat?: string;
     twitter?: string;
   };
-  operatingHours?: ListingDetailDto['operatingHours'];
+  operatingHours?: ListingOperatingHoursDto;
   is24Hours?: boolean;
   status?: 'draft' | 'pending' | 'active' | 'rejected' | 'suspended';
   seoTitle?: { ar?: string; en?: string };

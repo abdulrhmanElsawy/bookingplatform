@@ -150,6 +150,26 @@ const LocationSchema = new Schema(
   { _id: false },
 );
 
+const BranchSchema = new Schema(
+  {
+    name: { type: bilingualStringRequired, required: true },
+    address: { type: bilingualStringRequired, required: true },
+    city: { type: bilingualStringRequired, required: true },
+    district: { type: bilingualStringRequired, required: true },
+    coordinates: { type: GeoPointSchema, required: true },
+    googleMapsUrl: { type: String, trim: true, required: true },
+    phone: { type: String, trim: true },
+    whatsapp: { type: String, trim: true },
+    images: { type: [ListingImageSchema], default: [] },
+    operatingHours: { type: OperatingHoursSchema, default: () => ({}) },
+    is24Hours: { type: Boolean, default: false },
+    isMain: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    sortOrder: { type: Number, default: 0 },
+  },
+  { _id: true },
+);
+
 const ListingSchema = new Schema(
   {
     owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
@@ -171,6 +191,7 @@ const ListingSchema = new Schema(
     description: { type: bilingualStringRequired, required: true },
     shortDescription: { type: bilingualStringRequired, required: true },
     location: { type: LocationSchema, required: true },
+    branches: { type: [BranchSchema], default: [] },
     images: { type: [ListingImageSchema], default: [] },
     videos: { type: [ListingVideoSchema], default: [] },
     virtualTourUrl: { type: String, trim: true },
@@ -228,6 +249,7 @@ const ListingSchema = new Schema(
 );
 
 ListingSchema.index({ 'location.coordinates': '2dsphere' });
+ListingSchema.index({ 'branches.coordinates': '2dsphere' });
 
 ListingSchema.index(
   {

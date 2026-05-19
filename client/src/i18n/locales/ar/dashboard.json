@@ -136,5 +136,16 @@
   "listingAwaitingApproval": "بانتظار موافقة الإدارة قبل النشر.",
   "listingRejectionReason": "سبب الرفض",
   "listingUpdatedAt": "آخر تحديث {{date}}",
-  "ownerWelcomeBanner": "مرحباً! أضف منشأتك الأولى أو أدر قوائمك أدناه."
+  "ownerWelcomeBanner": "مرحباً! أضف منشأتك الأولى أو أدر قوائمك أدناه.",
+  "branchesTitle": "الفروع",
+  "branchesHint": "أضف فروع منشأتك. إذا لم تُضف فروعاً، سيُستخدم الموقع الرئيسي كفرع واحد.",
+  "branchNumber": "فرع {{number}}",
+  "branchMain": "الفرع الرئيسي",
+  "branchRemove": "حذف الفرع",
+  "branchAdd": "إضافة فرع",
+  "branchNameAr": "اسم الفرع (عربي)",
+  "branchNameEn": "اسم الفرع (إنجليزي)",
+  "branchPhone": "هاتف الفرع",
+  "branchWhatsapp": "واتساب الفرع",
+  "branchValidation": "أكمل اسم الفرع ورابط خرائط جوجل لكل فرع مفعّل."
 }

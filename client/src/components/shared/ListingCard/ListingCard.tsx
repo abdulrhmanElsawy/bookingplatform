@@ -1,15 +1,15 @@
 import type { BilingualField } from '@growth-world/shared';
 import { getLocalizedValue } from '@growth-world/shared';
-import { Check, ImageIcon, MapPin } from 'lucide-react';
+import { Check, Clock3, Heart, ImageIcon, MapPin, Scale, Star, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
+import { FavoriteButton } from '../../../features/favorites/components/FavoriteButton/FavoriteButton';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { formatCurrency } from '../../../utils/formatters';
 import { resolveUploadUrl } from '../../../utils/resolveUploadUrl';
 import { getListingCity, getListingName } from '../../../utils/listing';
 import { GuestSavingsStrip } from '../GuestSavingsStrip';
-import { ScoreBadge } from '../ScoreBadge';
 import styles from './ListingCard.module.css';
 
 export type ListingCardImage = {
@@ -43,6 +43,11 @@ export type ListingCardProps = {
   skeleton?: boolean;
   to?: string;
   showDealPrice?: boolean;
+  compare?: {
+    selected: boolean;
+    disabled?: boolean;
+    onToggle: () => void;
+  };
 };
 
 function pickMainImage(images: ListingCardImage[] | undefined): ListingCardImage | undefined {
@@ -62,6 +67,7 @@ export function ListingCard({
   skeleton,
   to,
   showDealPrice,
+  compare,
 }: ListingCardProps) {
   const { t } = useTranslation(['common', 'listings']);
   const { currentLang } = useLanguage();
@@ -99,6 +105,36 @@ export function ListingCard({
   const amenitiesPreview = listing.amenities.slice(0, 3);
   const showStrike = (showDealPrice ?? listing.isFeatured) && firstPrice != null;
   const rating = listing.averageRating ?? 0;
+  const compareDisabled = Boolean(compare?.disabled && !compare.selected);
+  const compareLabel = compare?.selected
+    ? t('listings:listingCardCompareAdded')
+    : t('listings:listingCardCompareAdd');
+  const compareButton = compare ? (
+    <button
+      type="button"
+      className={`${styles.compareButton} ${compare.selected ? styles.compareButtonActive : ''}`}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        compare.onToggle();
+      }}
+      disabled={compareDisabled}
+      aria-pressed={compare.selected}
+      title={compareDisabled ? t('listings:listingCardCompareLimit') : compareLabel}
+    >
+      <Scale size={15} strokeWidth={2.2} aria-hidden />
+      <span>{compareLabel}</span>
+    </button>
+  ) : null;
+  const gridFeatures = [
+    { key: 'hours', label: t('listings:homeFilter24h'), icon: Clock3 },
+    {
+      key: 'amenity',
+      label: amenitiesPreview[0] ? t(`listings:amenities.${amenitiesPreview[0]}`) : t('listings:homeFilterPool'),
+      icon: Users,
+    },
+    { key: 'training', label: t('listings:navPackages'), icon: Users },
+  ];
 
   if (variant === 'list') {
     return (
@@ -121,6 +157,7 @@ export function ListingCard({
               <ImageIcon size={32} strokeWidth={1.5} />
             </div>
           )}
+          {showStrike ? <span className={styles.discountBadge}>{t('listings:listingCardDiscount')}</span> : null}
         </Link>
         <div className={styles.listMain}>
           <Link className={styles.titleLink} to={href}>
@@ -144,15 +181,17 @@ export function ListingCard({
               </>
             ) : null}
           </p>
-          {amenitiesPreview.length > 0 ? (
-            <div className={styles.amenities}>
-              {amenitiesPreview.map((key) => (
-                <span key={key} className={styles.amenity}>
-                  {t(`listings:amenities.${key}`)}
+          <div className={styles.amenities}>
+            {gridFeatures.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <span key={feature.key} className={styles.amenity}>
+                  <Icon size={14} strokeWidth={2} aria-hidden />
+                  {feature.label}
                 </span>
-              ))}
-            </div>
-          ) : null}
+              );
+            })}
+          </div>
           <ul className={styles.perks}>
             {listing.isVerified ? (
               <li className={styles.perk}>
@@ -168,8 +207,16 @@ export function ListingCard({
         </div>
         <div className={styles.listAside}>
           {rating > 0 ? (
-            <ScoreBadge averageRating={rating} totalReviews={listing.totalReviews} />
+            <div className={styles.listRating}>
+              <span>
+                {rating.toFixed(1)}
+                <Star size={15} fill="currentColor" strokeWidth={2} aria-hidden />
+              </span>
+              <small>{t('common:review', { count: listing.totalReviews })}</small>
+            </div>
           ) : null}
+          <FavoriteButton listingSlug={listing.slug} className={styles.listFavoriteButton} />
+          {compareButton}
           <div className={styles.priceBlock}>
             {firstPrice != null ? (
               <>
@@ -181,11 +228,13 @@ export function ListingCard({
                 <span className={styles.price}>
                   {formatCurrency(firstPrice, currentLang)}
                 </span>
-                <span className={styles.taxes}>{t('listings:taxesAndFees')}</span>
+                <span className={styles.taxes}>
+                  {t('listings:listingCardListPricePrefix')} {t('common:from')}
+                </span>
               </>
             ) : null}
             <Link className={styles.optionsBtn} to={href}>
-              {t('common:seeAllOptions')} ›
+              {t('common:viewDetails')}
             </Link>
           </div>
         </div>
@@ -201,6 +250,7 @@ export function ListingCard({
       data-variant="grid"
       dir={dir}
     >
+      {compareButton}
       <Link className={styles.gridLink} to={href}>
         <div className={styles.media}>
           {mainImage ? (
@@ -215,7 +265,11 @@ export function ListingCard({
               <ImageIcon size={32} strokeWidth={1.5} />
             </div>
           )}
+          <span className={styles.favoriteIcon} aria-hidden>
+            <Heart size={21} strokeWidth={2.1} />
+          </span>
           <div className={styles.badges}>
+            {showStrike ? <span className={styles.discountBadge}>{t('listings:listingCardDiscount')}</span> : null}
             {listing.isVerified ? (
               <span className={styles.badge}>{t('common:verified')}</span>
             ) : null}
@@ -227,37 +281,41 @@ export function ListingCard({
           </div>
         </div>
         <div className={styles.body}>
-          <h3 className={styles.title}>{getListingName(listing, currentLang)}</h3>
-          <p className={styles.meta} data-testid="listing-card-location">
-            {getListingCity(listing, currentLang)}
-          </p>
-          {rating > 0 ? (
-            <div className={styles.scoreRow}>
-              <ScoreBadge
-                averageRating={rating}
-                totalReviews={listing.totalReviews}
-                compact
-              />
-              <span className={styles.reviewCount} data-testid="listing-card-reviews">
-                {t('common:review', { count: listing.totalReviews })}
+          <div className={styles.gridTitleRow}>
+            <h3 className={styles.title}>{getListingName(listing, currentLang)}</h3>
+            {rating > 0 ? (
+              <span className={styles.gridRating}>
+                {rating.toFixed(1)}
+                <Star size={14} fill="currentColor" strokeWidth={2} aria-hidden />
               </span>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
+          <p className={styles.meta} data-testid="listing-card-location">
+            <MapPin className={styles.pin} size={13} strokeWidth={2} aria-hidden />
+            <span>{getListingCity(listing, currentLang)}</span>
+          </p>
+          <div className={styles.gridFeatureRow}>
+            {gridFeatures.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <span key={feature.key} className={styles.gridFeature}>
+                  <Icon size={16} strokeWidth={2} aria-hidden />
+                  {feature.label}
+                </span>
+              );
+            })}
+          </div>
           {firstPrice != null ? (
             <div className={styles.priceRow}>
-              {showStrike ? (
-                <span className={styles.priceOriginal}>
-                  {formatCurrency(comparePrice(firstPrice), currentLang)}
-                </span>
-              ) : null}
+              <span className={styles.packageLabel}>{t('listings:listingCardPackageStarts')}</span>
               <span className={styles.price}>
                 {t('common:from')} {formatCurrency(firstPrice, currentLang)}
               </span>
             </div>
           ) : null}
+          <span className={styles.detailsBtn}>{t('common:viewDetails')}</span>
         </div>
       </Link>
-      <GuestSavingsStrip />
     </article>
   );
 }

@@ -42,4 +42,36 @@ describe('CreateListingBodySchema bilingual fields', () => {
     });
     expect(r.success).toBe(false);
   });
+
+  it('accepts optional branches with bilingual fields', () => {
+    const r = CreateListingBodySchema.safeParse({
+      ...minimalValid,
+      branches: [
+        {
+          name: { ar: 'فرع الياسمين', en: 'Al Yasmin Branch' },
+          address: { ar: '١', en: '1' },
+          city: { ar: 'الرياض', en: 'Riyadh' },
+          district: { ar: 'الياسمين', en: 'Al Yasmin' },
+          googleMapsUrl: 'https://maps.google.com/?q=24.7,46.7',
+          isMain: true,
+        },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('rejects branch missing googleMapsUrl', () => {
+    const r = CreateListingBodySchema.safeParse({
+      ...minimalValid,
+      branches: [
+        {
+          name: { ar: 'فرع', en: 'Branch' },
+          address: { ar: '١', en: '1' },
+          city: { ar: 'الرياض', en: 'Riyadh' },
+          district: { ar: 'حي', en: 'Dist' },
+        },
+      ],
+    });
+    expect(r.success).toBe(false);
+  });
 });

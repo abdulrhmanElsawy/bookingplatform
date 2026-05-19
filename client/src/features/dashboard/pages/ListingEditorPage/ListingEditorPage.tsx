@@ -4,6 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import {
+  ListingBranchesEditor,
+  emptyBranchDraft,
+  type BranchDraft,
+} from '../../components/ListingBranchesEditor/ListingBranchesEditor';
+import {
   hasImageUploadErrors,
   hasPendingImageUploads,
   ListingImagesStep,
@@ -14,6 +19,7 @@ import {
 import { ensureGymOwner } from '../../../auth/utils/ensureGymOwner';
 import {
   createListing,
+  type CreateListingBranchPayload,
   type CreateListingPayload,
   fetchCategories,
   fetchListingBySlug,
@@ -127,6 +133,7 @@ function applyListingToForm(
     setIs24Hours: (v: boolean) => void;
     setHoursByDay: (v: HoursState) => void;
     setListingImages: (v: ListingImageDraft[]) => void;
+    setBranches: (v: BranchDraft[]) => void;
   },
 ): void {
   if (listing.category?._id) setters.setCategoryId(listing.category._id);
@@ -195,6 +202,28 @@ function applyListingToForm(
       ),
     );
   }
+  if (listing.branches && listing.branches.length > 0) {
+    setters.setBranches(
+      listing.branches.map((branch) =>
+        emptyBranchDraft({
+          key: branch._id ?? newKey(),
+          nameAr: branch.name.ar,
+          nameEn: branch.name.en,
+          addrAr: branch.address.ar,
+          addrEn: branch.address.en,
+          cityAr: branch.city.ar,
+          cityEn: branch.city.en,
+          distAr: branch.district.ar,
+          distEn: branch.district.en,
+          googleMapsUrl: branch.googleMapsUrl ?? '',
+          phone: branch.phone ?? '',
+          whatsapp: branch.whatsapp ?? '',
+          isMain: Boolean(branch.isMain),
+          isActive: branch.isActive !== false,
+        }),
+      ),
+    );
+  }
 }
 
 export function ListingEditorPage() {
@@ -242,6 +271,9 @@ export function ListingEditorPage() {
   const [is24Hours, setIs24Hours] = useState(false);
   const [hoursByDay, setHoursByDay] = useState<HoursState>(defaultHoursState);
   const [listingImages, setListingImages] = useState<ListingImageDraft[]>([]);
+  const [branches, setBranches] = useState<BranchDraft[]>([
+    emptyBranchDraft({ isMain: true }),
+  ]);
 
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
@@ -284,6 +316,7 @@ export function ListingEditorPage() {
       setIs24Hours,
       setHoursByDay,
       setListingImages,
+      setBranches,
     });
     setHydrated(true);
   }, [isEdit, listingQuery.data, hydrated]);
@@ -347,6 +380,39 @@ export function ListingEditorPage() {
       if (!parsed && !isShortGoogleMapsLink(url)) {
         setFormError(t('googleMapsUrlInvalid'));
         return false;
+      }
+      const filledBranches = branches.filter(
+        (b) =>
+          b.nameAr.trim() ||
+          b.nameEn.trim() ||
+          b.googleMapsUrl.trim() ||
+          b.addrAr.trim(),
+      );
+      for (const branch of filledBranches) {
+        if (
+          !branch.nameAr.trim() ||
+          !branch.nameEn.trim() ||
+          !branch.addrAr.trim() ||
+          !branch.addrEn.trim() ||
+          !branch.cityAr.trim() ||
+          !branch.cityEn.trim() ||
+          !branch.distAr.trim() ||
+          !branch.distEn.trim() ||
+          !branch.googleMapsUrl.trim()
+        ) {
+          setFormError(t('branchValidation'));
+          return false;
+        }
+        const branchUrl = branch.googleMapsUrl.trim();
+        if (!isGoogleMapsUrlHost(branchUrl)) {
+          setFormError(t('googleMapsUrlInvalid'));
+          return false;
+        }
+        const branchParsed = parseGoogleMapsUrl(branchUrl);
+        if (!branchParsed && !isShortGoogleMapsLink(branchUrl)) {
+          setFormError(t('googleMapsUrlInvalid'));
+          return false;
+        }
       }
     }
     if (s === 3) {
@@ -423,6 +489,52 @@ export function ListingEditorPage() {
     }));
   }
 
+  function buildBranchesPayload(mapsUrl: string): CreateListingBranchPayload[] {
+    const filled = branches.filter(
+      (b) => b.nameAr.trim() && b.nameEn.trim() && b.googleMapsUrl.trim(),
+    );
+    if (filled.length > 0) {
+      return filled.map((branch, index) => {
+        const branchUrl = branch.googleMapsUrl.trim();
+        const branchParsed = parseGoogleMapsUrl(branchUrl);
+        const payload: CreateListingBranchPayload = {
+          name: { ar: branch.nameAr.trim(), en: branch.nameEn.trim() },
+          address: { ar: branch.addrAr.trim(), en: branch.addrEn.trim() },
+          city: { ar: branch.cityAr.trim(), en: branch.cityEn.trim() },
+          district: { ar: branch.distAr.trim(), en: branch.distEn.trim() },
+          googleMapsUrl: branchParsed?.normalizedUrl ?? branchUrl,
+          isMain: branch.isMain,
+          isActive: branch.isActive,
+          sortOrder: index,
+        };
+        if (branchParsed) {
+          payload.coordinates = {
+            type: 'Point',
+            coordinates: [branchParsed.lng, branchParsed.lat],
+          };
+        }
+        const ph = branch.phone.trim();
+        const wa = branch.whatsapp.trim();
+        if (ph) payload.phone = ph;
+        if (wa) payload.whatsapp = wa;
+        return payload;
+      });
+    }
+
+    return [
+      {
+        name: { ar: nameAr.trim(), en: nameEn.trim() },
+        address: { ar: addrAr.trim(), en: addrEn.trim() },
+        city: { ar: cityAr.trim(), en: cityEn.trim() },
+        district: { ar: distAr.trim(), en: distEn.trim() },
+        googleMapsUrl: mapsUrl,
+        isMain: true,
+        isActive: true,
+        sortOrder: 0,
+      },
+    ];
+  }
+
   function buildPayload(status: 'draft' | 'pending'): CreateListingPayload {
     const mapsUrl = googleMapsUrl.trim();
     const parsed = parseGoogleMapsUrl(mapsUrl);
@@ -444,6 +556,7 @@ export function ListingEditorPage() {
       shortDescription: { ar: shortAr.trim(), en: shortEn.trim() },
       description: { ar: descAr.trim(), en: descEn.trim() },
       location,
+      branches: buildBranchesPayload(parsed?.normalizedUrl ?? mapsUrl),
       amenities: amenities.length > 0 ? amenities : undefined,
       languages: ['ar', 'en'],
       packages: packages.map((p) => {
@@ -834,6 +947,7 @@ export function ListingEditorPage() {
                 <p className={styles.mapsDetected}>{t('googleMapsUrlShortOk')}</p>
               ) : null}
             </div>
+            <ListingBranchesEditor branches={branches} onChange={setBranches} />
           </div>
         ) : null}
 
@@ -1330,3 +1444,5 @@ export function ListingEditorPage() {
     </>
   );
 }
+
+

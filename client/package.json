@@ -16,7 +16,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@growth-world/shared": "*",
+    "@growth-world/shared": "file:../shared",
     "@tanstack/react-query": "^5.90.12",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",

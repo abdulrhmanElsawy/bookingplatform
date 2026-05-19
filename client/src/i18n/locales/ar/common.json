@@ -109,5 +109,10 @@
   "keyword": "كلمة البحث",
   "allCategories": "كل الفئات",
   "cityPlaceholder": "المدينة أو المنطقة",
-  "keywordPlaceholder": "اسم المنشأة أو كلمة مفتاحية"
+  "keywordPlaceholder": "اسم المنشأة أو كلمة مفتاحية",
+  "bottomNavLabel": "روابط سريعة",
+  "bottomNavAccount": "حسابي",
+  "bottomNavFavorites": "المفضلة",
+  "bottomNavHome": "الرئيسية",
+  "bottomNavCompare": "المقارنات"
 }
