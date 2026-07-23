@@ -161,6 +161,97 @@
   background: color-mix(in srgb, var(--color-brand) 10%, transparent);
 }
 
+.resubmitLink {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-brand);
+  color: var(--color-gray-900);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  text-decoration: none;
+}
+
+.deleteBtn {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border: 1px solid color-mix(in srgb, #ef4444 45%, transparent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: #fca5a5;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+.disabledAction {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-sticky) + 2);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.55);
+}
+
+.modal {
+  inline-size: min(100%, 28rem);
+  padding: var(--space-5);
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.modalTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  color: var(--text-heading);
+}
+
+.modalBody {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.modalCancel,
+.modalConfirm {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+.modalCancel {
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: transparent;
+  color: var(--text-heading);
+}
+
+.modalConfirm {
+  border: none;
+  background: #ef4444;
+  color: #fff;
+}
+
 .empty {
   padding: var(--space-10);
   border: var(--card-border);

@@ -1,4 +1,4 @@
-import { getLocalizedValue } from '@growth-world/shared';
+import { getLocalizedValue, isCategoryLive } from '@growth-world/shared';
 import { FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createSearchParams, useNavigate } from 'react-router-dom';
@@ -26,6 +26,7 @@ export function SearchBar({
   className = '',
 }: SearchBarProps) {
   const { t } = useTranslation(['listings', 'common']);
+  const comingSoonSuffix = t('common:categoryComingSoon');
   const { currentLang } = useLanguage();
   const navigate = useNavigate();
   const [category, setCategory] = useState(initialCategory);
@@ -41,7 +42,7 @@ export function SearchBar({
   function onSubmit(e: FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const params: Record<string, string> = {};
-    if (category) params.category = category;
+    if (category && isCategoryLive(category)) params.category = category;
     const searchParts = [city.trim(), keyword.trim()].filter(Boolean);
     if (searchParts.length) params.search = searchParts.join(' ');
     navigate({
@@ -69,10 +70,16 @@ export function SearchBar({
           placeholder={t('common:allCategories')}
           options={[
             { value: '', label: t('common:allCategories') },
-            ...categories.map((c) => ({
-              value: c.slug,
-              label: getLocalizedValue(c.name, currentLang),
-            })),
+            ...categories.map((c) => {
+              const live = c.isBookable ?? isCategoryLive(c.slug);
+              return {
+                value: c.slug,
+                label: live
+                  ? getLocalizedValue(c.name, currentLang)
+                  : `${getLocalizedValue(c.name, currentLang)} (${comingSoonSuffix})`,
+                disabled: !live,
+              };
+            }),
           ]}
         />
       </div>

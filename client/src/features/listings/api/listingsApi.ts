@@ -56,6 +56,7 @@ export type CategoryDto = {
   name: BilingualField;
   image?: string;
   isActive?: boolean;
+  isBookable?: boolean;
   order?: number;
 };
 
@@ -65,9 +66,11 @@ export type ListingListItemDto = {
   name: BilingualField;
   location: { city: BilingualField };
   amenities: string[];
-  packages: { price: number }[];
+  packages: { price: number; duration?: string }[];
   totalReviews: number;
   averageRating?: number;
+  is24Hours?: boolean;
+  createdAt?: string;
   images?: {
     url: string;
     alt?: BilingualField;
@@ -372,6 +375,22 @@ export async function updateListing(
     throw new ListingsApiError('Invalid response', res.status);
   }
   return typed.listing;
+}
+
+export async function deleteListing(listingId: string): Promise<void> {
+  const base = getApiUrl();
+  if (!base) {
+    throw new ListingsApiError('API URL is not configured', 0);
+  }
+  const res = await fetch(`${base}/api/listings/${encodeURIComponent(listingId)}`, {
+    method: 'DELETE',
+    headers: jsonHeaders(),
+    credentials: 'include',
+  });
+  const data = await parseJson(res);
+  if (!res.ok) {
+    throw new ListingsApiError(messageFromBody(data) || 'Request failed', res.status);
+  }
 }
 
 export type PatchListingStatusPayload = {

@@ -61,6 +61,16 @@ describe('Header', () => {
     cleanup();
   });
 
+  it('renders coming soon state for non-live category pills', () => {
+    renderHeader();
+    expect(screen.getByTestId('category-pill-gyms')).toBeInTheDocument();
+    expect(screen.getByTestId('category-pill-padel-coming-soon')).toBeInTheDocument();
+    expect(screen.getByTestId('category-pill-padel-coming-soon')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+  });
+
   it('renders search nav label in Arabic on desktop layout', () => {
     renderHeader();
     const links = screen.getAllByRole('link', { name: 'بحث' });
@@ -135,6 +145,7 @@ describe('Header', () => {
     expect(drawer.className).toMatch(/drawerOpen/);
     expect(drawer).toHaveAttribute('aria-modal', 'true');
     expect(screen.getByTestId('header-drawer-backdrop')).toBeInTheDocument();
+    expect(screen.getByTestId('drawer-help')).toHaveAttribute('href', '/help');
     mockWideViewport(true);
   });
 
@@ -165,26 +176,8 @@ describe('Header', () => {
     useAuthStore.getState().clearSession();
   });
 
-  it('shows user menu when authenticated', async () => {
-    const prevFetch = globalThis.fetch;
-    globalThis.fetch = jest.fn((input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input.url;
-      if (url.includes('/api/notifications/unread-count')) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => ({ unreadCount: 0 }),
-          text: async () => '{"unreadCount":0}',
-        } as unknown as Response);
-      }
-      return Promise.reject(new Error(`unexpected fetch: ${url}`));
-    });
-
+  it('shows account link in drawer when authenticated', async () => {
+    mockNarrowViewport();
     useAuthStore.getState().setSession({
       id: '1',
       email: 'a@b.com',
@@ -194,19 +187,18 @@ describe('Header', () => {
       isEmailVerified: true,
     });
 
-    try {
-      renderHeader();
+    const user = userEvent.setup();
+    renderHeader();
+    await user.click(screen.getByTestId('header-menu-toggle'));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('nav-user-menu-trigger')).toBeInTheDocument();
-      });
-      expect(screen.queryByTestId('nav-login')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('nav-register')).not.toBeInTheDocument();
-    } finally {
-      globalThis.fetch = prevFetch;
-      await act(async () => {
-        useAuthStore.getState().clearSession();
-      });
-    }
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'حسابي' })).toHaveAttribute('href', '/account');
+    });
+    expect(screen.queryByTestId('header-notifications')).not.toBeInTheDocument();
+
+    await act(async () => {
+      useAuthStore.getState().clearSession();
+    });
+    mockWideViewport(true);
   });
 });

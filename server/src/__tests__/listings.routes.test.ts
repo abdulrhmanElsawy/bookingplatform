@@ -2,6 +2,7 @@ import request from 'supertest';
 
 import app from '../app.js';
 import { connectMongo, disconnectMongo } from '../database/mongodb.js';
+import { getLiveCategoryIds } from '../lib/liveCategories.js';
 import { signAccessToken } from '../lib/jwt.js';
 import { hashPassword } from '../modules/auth/crypto.js';
 import { Category } from '../modules/categories/category.model.js';
@@ -392,5 +393,69 @@ describe('Listings API', () => {
     expect(notif?.type).toBe('listing_rejected');
     expect(String(notif?.body.ar)).toContain('الصور');
     expect(String(notif?.body.en)).toContain('Photos');
+  });
+
+  it('GET /api/listings?category=padel returns empty for non-live category', async () => {
+    await Category.create({
+      name: { ar: 'بادل', en: 'Padel' },
+      slug: 'padel',
+      isActive: true,
+      order: 1,
+    });
+    const gymCategoryId = await seedCategory();
+    const { user } = await seedGymOwner();
+    await Listing.create({
+      owner: user._id,
+      category: gymCategoryId,
+      name: { ar: 'صالة', en: 'Gym' },
+      slug: 'gym-only-list',
+      description: { ar: 'وصف', en: 'Desc' },
+      shortDescription: { ar: 'ق', en: 'S' },
+      location: baseLocation,
+      status: 'active',
+    });
+    const res = await request(app).get('/api/listings?category=padel').expect(200);
+    expect(res.body.listings).toEqual([]);
+    expect(res.body.total).toBe(0);
+  });
+
+  it('GET /api/listings without category returns only live-category listings', async () => {
+    const gymCategoryId = await seedCategory();
+    const padelCat = await Category.create({
+      name: { ar: 'بادل', en: 'Padel' },
+      slug: 'padel',
+      isActive: true,
+      order: 1,
+    });
+    const { user } = await seedGymOwner();
+    await Listing.create({
+      owner: user._id,
+      category: gymCategoryId,
+      name: { ar: 'صالة', en: 'Gym' },
+      slug: 'gym-live-only',
+      description: { ar: 'وصف', en: 'Desc' },
+      shortDescription: { ar: 'ق', en: 'S' },
+      location: baseLocation,
+      status: 'active',
+    });
+    await Listing.create({
+      owner: user._id,
+      category: padelCat._id,
+      name: { ar: 'بادل', en: 'Padel venue' },
+      slug: 'padel-hidden',
+      description: { ar: 'وصف', en: 'Desc' },
+      shortDescription: { ar: 'ق', en: 'S' },
+      location: baseLocation,
+      status: 'active',
+    });
+    const liveIds = await getLiveCategoryIds();
+    expect(liveIds.length).toBeGreaterThanOrEqual(1);
+
+    const res = await request(app).get('/api/listings').expect(200);
+    expect(res.body.listings).toHaveLength(1);
+    expect(res.body.listings[0].slug).toBe('gym-live-only');
+
+    const padelOnly = await request(app).get('/api/listings?category=padel').expect(200);
+    expect(padelOnly.body.listings).toHaveLength(0);
   });
 });

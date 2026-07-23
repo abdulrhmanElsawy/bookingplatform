@@ -31,3 +31,4 @@ export {
   SimulateVenueSubscriptionSchema,
   VerifyAccessCodeSchema,
 } from './subscriptionSchemas.js';
+export { ContactSupportBodySchema, type ContactSupportBody } from './supportSchemas.js';

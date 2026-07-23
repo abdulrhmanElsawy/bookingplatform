@@ -28,7 +28,7 @@ describe('getApiErrorMessage', () => {
 
   it('maps status codes to error keys', () => {
     expect(getApiErrorMessage(new ListingsApiError('x', 0), t)).toBe('NET');
-    expect(getApiErrorMessage(new ListingsApiError('x', 403), t)).toBe('403');
+    expect(getApiErrorMessage(new ListingsApiError('error', 403), t)).toBe('403');
     expect(getApiErrorMessage(new ListingsApiError('x', 404), t)).toBe('404');
     expect(getApiErrorMessage(new ListingsApiError('x', 429), t)).toBe('429');
     expect(getApiErrorMessage(new ListingsApiError('x', 503), t)).toBe('SRV');
@@ -52,6 +52,17 @@ describe('getApiErrorMessage', () => {
     expect(
       getApiErrorMessage(new AuthApiError('error', 401, 'SESSION_EXPIRED'), t),
     ).toBe('SESS');
+  });
+
+  it('maps EMAIL_NOT_VERIFIED code to dedicated message', () => {
+    const dict = { ...{ networkError: 'NET', serverError: 'SRV', unauthorized: '401', forbidden: '403', notFound: '404', rateLimited: '429', uploadTooLarge: 'BIG', uploadInvalidType: 'TYPE', sessionExpired: 'SESS', validation: 'VAL', emailNotVerified: 'VERIFY', emailSendFailed: 'MAIL' } };
+    const t2 = ((key: string) => dict[key as keyof typeof dict] ?? key) as TFunction<'errors', undefined>;
+    expect(
+      getApiErrorMessage(new AuthApiError('server msg', 403, 'EMAIL_NOT_VERIFIED'), t2),
+    ).toBe('server msg');
+    expect(
+      getApiErrorMessage(new AuthApiError('error', 403, 'EMAIL_NOT_VERIFIED'), t2),
+    ).toBe('VERIFY');
   });
 
   it('handles TypeError as network', () => {

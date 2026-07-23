@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { useFormatCurrency } from '../../../../hooks/useFormatCurrency';
 import { useLanguage } from '../../../../hooks/useLanguage';
 import { useSubscriptionT } from '../../i18n/useSubscriptionT';
 import { getApiErrorMessage } from '../../../../utils/apiErrorMessage';
-import { formatCurrency } from '../../../../utils/formatters';
 import { getListingName } from '../../../../utils/listing';
 import { fetchListingBySlug } from '../../../listings/api/listingsApi';
 import {
@@ -25,6 +25,7 @@ export function VenueCheckoutPage() {
   const { t: tCommon } = useTranslation('common');
   const { t: tErrors } = useTranslation('errors');
   const { currentLang } = useLanguage();
+  const formatPrice = useFormatCurrency();
 
   const [selectedPackageId, setSelectedPackageId] = useState(packageFromUrl);
   const [cardNumber, setCardNumber] = useState('');
@@ -171,7 +172,7 @@ export function VenueCheckoutPage() {
                       <span>
                         <strong>{getLocalizedValue(pkg.name, currentLang)}</strong>
                         <br />
-                        {formatCurrency(pkg.price, currentLang)} ·{' '}
+                        {formatPrice(pkg.price)} ·{' '}
                         {tListings(`duration.${pkg.duration}`)}
                       </span>
                     </label>
@@ -202,15 +203,15 @@ export function VenueCheckoutPage() {
                   </div>
                   <div className={styles.summaryRow}>
                     <span>{t('subtotal')}</span>
-                    <span>{formatCurrency(selectedPackage.price, currentLang)}</span>
+                    <span>{formatPrice(selectedPackage.price)}</span>
                   </div>
                   <div className={styles.summaryRow}>
                     <span>{t('tax')}</span>
-                    <span>{formatCurrency(0, currentLang)}</span>
+                    <span>{formatPrice(0)}</span>
                   </div>
                   <div className={styles.summaryRow}>
                     <strong>{t('total')}</strong>
-                    <strong>{formatCurrency(selectedPackage.price, currentLang)}</strong>
+                    <strong>{formatPrice(selectedPackage.price)}</strong>
                   </div>
                 </section>
 

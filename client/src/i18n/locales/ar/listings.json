@@ -210,6 +210,7 @@
   "comparePageSubtitle": "اختر حتى 3 نوادي للمقارنة",
   "compareShare": "مشاركة المقارنة",
   "compareAddClub": "إضافة نادي",
+  "compareCounter": "{{count}} نوادٍ في المقارنة",
   "compareRowClub": "النادي",
   "compareRowMonthlyPrice": "السعر الشهري",
   "compareRowBranches": "عدد الفروع",

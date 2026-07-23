@@ -60,6 +60,7 @@ describe('Footer', () => {
     expect(screen.queryByText('P1')).not.toBeInTheDocument();
     expect(screen.getByTestId('footer-list-your-gym-cta')).toHaveAttribute('href', '/register');
     expect(screen.getByTestId('footer-list-your-gym-link')).toHaveAttribute('href', '/register');
+    expect(screen.getByTestId('footer-help-link')).toHaveAttribute('href', '/help');
   });
 
   it('links list your gym to new listing when authenticated', async () => {

@@ -1,0 +1,1 @@
+export { CompareFloatingBar } from './CompareFloatingBar';

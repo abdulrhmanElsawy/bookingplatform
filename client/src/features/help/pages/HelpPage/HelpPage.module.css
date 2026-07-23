@@ -1,0 +1,99 @@
+.page {
+  max-inline-size: var(--content-max, 1120px);
+  margin-inline: auto;
+  padding: var(--space-8) var(--container-px) var(--space-12);
+}
+
+.hero {
+  margin-block-end: var(--space-10);
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 var(--space-4);
+  font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+  font-weight: var(--font-bold);
+  color: var(--text-heading);
+  line-height: var(--line-height-tight);
+}
+
+.subtitle {
+  margin: 0 auto;
+  max-inline-size: 42rem;
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  line-height: var(--line-height-current);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-10);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: start;
+  }
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-heading);
+}
+
+.contactCard {
+  border: var(--card-border);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 6%));
+}
+
+.contactIntro {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-current);
+}
+
+.honeypot {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.successBox {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--search-btn-bg) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--search-btn-bg) 35%, transparent);
+}
+
+.successTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-heading);
+}
+
+.successBody {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  line-height: var(--line-height-current);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-danger, #c0392b);
+}

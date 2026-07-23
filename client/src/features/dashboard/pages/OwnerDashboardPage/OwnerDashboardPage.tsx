@@ -58,7 +58,7 @@ export function OwnerDashboardPage() {
   const quickActions: QuickAction[] = [
     {
       to: '/owner/listings',
-      label: t('myListings'),
+      label: t('myAds'),
       icon: LayoutGrid,
       testId: 'my-listings-link',
     },
@@ -93,7 +93,7 @@ export function OwnerDashboardPage() {
     <div className={styles.page} data-testid="owner-dashboard-page">
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1 className={styles.title}>{t('dashboardTitle')}</h1>
+          <h1 className={styles.title}>{t('adsDashboard')}</h1>
           <p className={styles.sub}>
             {t('ownerDashboardSubtitle', {
               defaultValue: isEn

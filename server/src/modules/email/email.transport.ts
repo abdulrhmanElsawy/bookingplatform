@@ -34,7 +34,30 @@ export async function sendMailDirect(job: EmailJob): Promise<void> {
   await getMailTransporter().sendMail({
     from,
     to: job.to,
+    replyTo: job.replyTo,
     subject: job.subject,
     html: job.html,
   });
+}
+
+/** Returns true when real SMTP is configured (not jsonTransport fallback). */
+export function isSmtpConfigured(): boolean {
+  const env = getEnv();
+  return Boolean(env.SMTP_HOST && env.SMTP_FROM);
+}
+
+/** Verifies SMTP connectivity. No-op when SMTP is not configured (dev jsonTransport). */
+export async function verifySmtpConnection(): Promise<void> {
+  if (!isSmtpConfigured()) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn(
+        'SMTP not configured — emails will use jsonTransport (not delivered). Set SMTP_HOST and SMTP_FROM.',
+      );
+    }
+    return;
+  }
+  await getMailTransporter().verify();
+  if (process.env.NODE_ENV !== 'test') {
+    console.info('SMTP connection verified');
+  }
 }

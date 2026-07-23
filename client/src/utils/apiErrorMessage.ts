@@ -56,12 +56,29 @@ export function getApiErrorMessage(
     return t('sessionExpired');
   }
 
+  if (code === 'EMAIL_NOT_VERIFIED') {
+    if (message && !isPlaceholderMessage(message)) return message;
+    return t('emailNotVerified');
+  }
+
+  if (code === 'EMAIL_SEND_FAILED') {
+    if (message && !isPlaceholderMessage(message)) return message;
+    return t('emailSendFailed');
+  }
+
+  if (code === 'ACCOUNT_LOCKED') {
+    if (message && !isPlaceholderMessage(message)) return message;
+  }
+
   if (status === 401) {
     if (message && !isPlaceholderMessage(message)) return message;
     return t('unauthorized');
   }
 
-  if (status === 403) return t('forbidden');
+  if (status === 403) {
+    if (message && !isPlaceholderMessage(message)) return message;
+    return t('forbidden');
+  }
   if (status === 404) return t('notFound');
   if (status === 429) return t('rateLimited');
   if (status >= 500 && status < 600) return t('serverError');

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Outlet, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +36,11 @@ const ForgotPasswordPage = lazy(() =>
     default: m.ForgotPasswordPage,
   })),
 );
+const VerifyEmailPage = lazy(() =>
+  import('../features/auth/components/VerifyEmailPage/VerifyEmailPage').then((m) => ({
+    default: m.VerifyEmailPage,
+  })),
+);
 const SearchPage = lazy(() =>
   import('../features/listings/pages/SearchPage/SearchPage').then((m) => ({
     default: m.SearchPage,
@@ -49,6 +54,11 @@ const ListingDetailPage = lazy(() =>
 const ComparePage = lazy(() =>
   import('../features/compare/pages/ComparePage/ComparePage').then((m) => ({
     default: m.ComparePage,
+  })),
+);
+const HelpPage = lazy(() =>
+  import('../features/help/pages/HelpPage/HelpPage').then((m) => ({
+    default: m.HelpPage,
   })),
 );
 const FavoritesPage = lazy(() =>
@@ -166,6 +176,16 @@ const AdminAuditPage = lazy(() =>
     default: m.AdminAuditPage,
   })),
 );
+const AccountLayout = lazy(() =>
+  import('../features/account/components/AccountLayout/AccountLayout').then((m) => ({
+    default: m.AccountLayout,
+  })),
+);
+const OwnerLayout = lazy(() =>
+  import('../features/dashboard/components/OwnerLayout/OwnerLayout').then((m) => ({
+    default: m.OwnerLayout,
+  })),
+);
 
 function RouteFallback() {
   const { t } = useTranslation('common');
@@ -199,12 +219,14 @@ export function AppRouter() {
             }
           />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
         </Route>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="listings" element={<SearchPage />} />
           <Route path="listings/:slug" element={<ListingDetailPage />} />
           <Route path="compare" element={<ComparePage />} />
+          <Route path="help" element={<HelpPage />} />
           <Route
             path="listings/:slug/checkout"
             element={
@@ -214,45 +236,22 @@ export function AppRouter() {
             }
           />
           <Route
-            path="account/favorites"
+            path="account"
             element={
               <AuthGuard>
-                <FavoritesPage />
+                <AccountLayout />
               </AuthGuard>
             }
-          />
-          <Route
-            path="account/memberships"
-            element={
-              <AuthGuard>
-                <MembershipsPage />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="account/profile"
-            element={
-              <AuthGuard>
-                <ProfilePage />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="account/notifications"
-            element={
-              <AuthGuard>
-                <NotificationsPage />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="account/demo"
-            element={
-              <AuthGuard>
-                <ProtectedDemoPage />
-              </AuthGuard>
-            }
-          />
+          >
+            <Route path="favorites" element={<FavoritesPage />} />
+            <Route path="memberships" element={<MembershipsPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route
+              path="demo"
+              element={<ProtectedDemoPage />}
+            />
+          </Route>
           <Route
             path="admin"
             element={
@@ -279,7 +278,7 @@ export function AppRouter() {
             path="owner"
             element={
               <AuthGuard>
-                <Outlet />
+                <OwnerLayout />
               </AuthGuard>
             }
           >

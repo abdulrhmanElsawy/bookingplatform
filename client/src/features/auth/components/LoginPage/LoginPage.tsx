@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LoginSchema } from '@growth-world/shared';
 
-import { postLogin, type LoginBody } from '../../api/authApi';
+import { postLogin, type LoginBody, AuthApiError } from '../../api/authApi';
 import { useLanguage } from '../../../../hooks/useLanguage';
 import { mapApiUserToSession, useAuthStore } from '../../../../store/authStore';
 import { getApiErrorMessage } from '../../../../utils/apiErrorMessage';
@@ -84,6 +84,13 @@ export function LoginPage() {
         state?.from && state.from.startsWith('/') ? state.from : '/';
       navigate(dest, { replace: true });
     } catch (e) {
+      if (e instanceof AuthApiError && e.code === 'EMAIL_NOT_VERIFIED') {
+        navigate(
+          `/verify-email?email=${encodeURIComponent(parsed.data.email)}`,
+          { replace: true },
+        );
+        return;
+      }
       setError(getApiErrorMessage(e, tErrors));
     } finally {
       setSubmitting(false);

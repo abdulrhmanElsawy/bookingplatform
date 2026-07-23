@@ -1,4 +1,4 @@
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
   Building2,
@@ -21,11 +21,14 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { DealsSlider } from '../../../../components/shared/DealsSlider';
+import { ListingCard } from '../../../../components/shared/ListingCard';
+import { useFormatCurrency } from '../../../../hooks/useFormatCurrency';
 import { useLanguage } from '../../../../hooks/useLanguage';
 import { useSEO } from '../../../../hooks/useSEO';
-import { formatCurrency } from '../../../../utils/formatters';
 import { resolveUploadUrl } from '../../../../utils/resolveUploadUrl';
-import { fetchListingBySlug } from '../../../listings/api/listingsApi';
+import { fetchListingBySlug, fetchListings } from '../../../listings/api/listingsApi';
+import { mapListingToCard } from '../../../listings/utils/mapListingToCard';
 import {
   COMPARE_MAX_ITEMS,
   COMPARE_MIN_ITEMS,
@@ -82,9 +85,11 @@ function genderLabel(type: ClubGenderType, t: (k: string) => string): string {
 export function ComparePage() {
   const { t } = useTranslation(['listings', 'common']);
   const { currentLang } = useLanguage();
+  const formatPrice = useFormatCurrency();
   const navigate = useNavigate();
   const items = useCompareStore((s) => s.items);
   const removeItem = useCompareStore((s) => s.removeItem);
+  const addItem = useCompareStore((s) => s.addItem);
   const clear = useCompareStore((s) => s.clear);
   const ready = items.length >= COMPARE_MIN_ITEMS;
   const dir = currentLang === 'ar' ? 'rtl' : 'ltr';
@@ -125,6 +130,26 @@ export function ComparePage() {
   const bestSlug = useMemo(() => pickBestChoiceSlug(venues), [venues]);
   const bestVenue = venues.find((v) => v.slug === bestSlug) ?? venues[0];
   const isLoadingDetails = detailQueries.some((q) => q.isLoading);
+  const hasSlots = items.length < COMPARE_MAX_ITEMS;
+
+  const { data: addCandidatesData, isLoading: addCandidatesLoading } = useQuery({
+    queryKey: ['listings', 'compare-add-candidates'],
+    queryFn: () => fetchListings({ limit: 24, sort: 'rating' }),
+    enabled: hasSlots,
+    staleTime: 60_000,
+  });
+
+  const addCandidates = useMemo(() => {
+    const selected = new Set(items.map((item) => item.slug));
+    return (addCandidatesData?.listings ?? [])
+      .filter((listing) => !selected.has(listing.slug))
+      .slice(0, 8);
+  }, [addCandidatesData, items]);
+
+  const addCandidatesCards = useMemo(
+    () => addCandidates.map((listing) => mapListingToCard(listing)),
+    [addCandidates],
+  );
 
   useSEO({
     titleAr: t('listings:comparePageTitle'),
@@ -187,9 +212,50 @@ export function ComparePage() {
         <section className={styles.emptyState}>
           <p className={styles.emptyTitle}>{t('listings:compareNeedMoreTitle')}</p>
           <p>{t('listings:compareNeedMoreDesc')}</p>
-          <Link className={styles.primaryBtn} to="/">
-            {t('listings:compareBackHome')}
-          </Link>
+          {hasSlots ? (
+            <section className={styles.addPlacesSection} aria-label={t('listings:compareAddClub')}>
+              <div className={styles.addPlacesHead}>
+                <h2>{t('listings:compareAddClub')}</h2>
+                <span>
+                  {t('listings:compareCounter', { count: items.length })} / {COMPARE_MAX_ITEMS}
+                </span>
+              </div>
+              {addCandidatesLoading ? (
+                <p className={styles.loadingHint}>{t('common:loading')}</p>
+              ) : (
+                <div className={styles.addPlacesSliderWrap}>
+                  <DealsSlider ariaLabel={t('listings:compareAddClub')} edgeBleed={false}>
+                    {addCandidatesCards.map((card) => (
+                      <div key={card.slug} className={styles.addPlaceSlide}>
+                        <ListingCard
+                          listing={card}
+                          variant="grid"
+                          compare={{
+                            selected: false,
+                            disabled: items.length >= COMPARE_MAX_ITEMS,
+                            onToggle: () => addItem(card),
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className={styles.directAddBtn}
+                          onClick={() => addItem(card)}
+                          disabled={items.length >= COMPARE_MAX_ITEMS}
+                        >
+                          <Plus size={14} aria-hidden />
+                          {t('listings:compareAddClub')}
+                        </button>
+                      </div>
+                    ))}
+                  </DealsSlider>
+                </div>
+              )}
+            </section>
+          ) : (
+            <Link className={styles.primaryBtn} to="/">
+              {t('listings:compareBackHome')}
+            </Link>
+          )}
         </section>
       ) : (
         <>
@@ -225,6 +291,47 @@ export function ComparePage() {
             ) : null}
           </section>
 
+          {hasSlots ? (
+            <section className={styles.addPlacesSection} aria-label={t('listings:compareAddClub')}>
+              <div className={styles.addPlacesHead}>
+                <h2>{t('listings:compareAddClub')}</h2>
+                <span>
+                  {t('listings:compareCounter', { count: items.length })} / {COMPARE_MAX_ITEMS}
+                </span>
+              </div>
+              {addCandidatesLoading ? (
+                <p className={styles.loadingHint}>{t('common:loading')}</p>
+              ) : (
+                <div className={styles.addPlacesSliderWrap}>
+                  <DealsSlider ariaLabel={t('listings:compareAddClub')} edgeBleed={false}>
+                    {addCandidatesCards.map((card) => (
+                      <div key={card.slug} className={styles.addPlaceSlide}>
+                        <ListingCard
+                          listing={card}
+                          variant="grid"
+                          compare={{
+                            selected: false,
+                            disabled: items.length >= COMPARE_MAX_ITEMS,
+                            onToggle: () => addItem(card),
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className={styles.directAddBtn}
+                          onClick={() => addItem(card)}
+                          disabled={items.length >= COMPARE_MAX_ITEMS}
+                        >
+                          <Plus size={14} aria-hidden />
+                          {t('listings:compareAddClub')}
+                        </button>
+                      </div>
+                    ))}
+                  </DealsSlider>
+                </div>
+              )}
+            </section>
+          ) : null}
+
           {isLoadingDetails ? (
             <p className={styles.loadingHint}>{t('common:loading')}</p>
           ) : null}
@@ -243,7 +350,7 @@ export function ComparePage() {
                 venues={venues}
                 renderCell={(v) =>
                   v.monthlyPrice != null
-                    ? formatCurrency(v.monthlyPrice, currentLang)
+                    ? formatPrice(v.monthlyPrice)
                     : t('listings:compareNotAvailable')
                 }
                 badgeFor={(slug) =>

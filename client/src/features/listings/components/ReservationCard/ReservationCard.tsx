@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { ScoreBadge } from '../../../../components/shared/ScoreBadge';
-import { formatCurrency } from '../../../../utils/formatters';
-import { useLanguage } from '../../../../hooks/useLanguage';
+import { useFormatCurrency } from '../../../../hooks/useFormatCurrency';
 import styles from './ReservationCard.module.css';
 
 export type ReservationCardProps = {
@@ -25,13 +24,13 @@ export function ReservationCard({
   onContact,
 }: ReservationCardProps) {
   const { t } = useTranslation('listings');
-  const { currentLang } = useLanguage();
+  const formatPrice = useFormatCurrency();
 
   return (
     <aside className={styles.card} data-testid="reservation-card">
       {price != null ? (
         <p className={styles.price}>
-          {formatCurrency(price, currentLang)}
+          {formatPrice(price)}
           <span className={styles.taxes}> {t('taxesAndFees')}</span>
         </p>
       ) : null}

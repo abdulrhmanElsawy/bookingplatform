@@ -8,7 +8,8 @@ export function formatCurrency(amount: number, lang: AppLang): string {
   return new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-US', {
     style: 'currency',
     currency: 'SAR',
-    currencyDisplay: lang === 'ar' ? 'symbol' : 'code',
+    currencyDisplay: lang === 'ar' ? 'narrowSymbol' : 'code',
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 

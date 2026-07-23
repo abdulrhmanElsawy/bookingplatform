@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, rmSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, rmSync, statSync, symlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import {
@@ -69,7 +69,20 @@ if (!existsSync(resolve(sharedRoot, 'node_modules'))) {
   run('npm install --include=dev', sharedRoot);
 }
 
-if (!existsSync(sharedDist)) {
+const categoriesDist = resolve(sharedRoot, 'dist/types/categories.js');
+const categoriesSrc = resolve(sharedRoot, 'types/categories.ts');
+
+function sharedBuildStale() {
+  if (!existsSync(sharedDist) || !existsSync(categoriesDist)) {
+    return true;
+  }
+  if (!existsSync(categoriesSrc)) {
+    return false;
+  }
+  return statSync(categoriesSrc).mtimeMs > statSync(categoriesDist).mtimeMs;
+}
+
+if (sharedBuildStale()) {
   run('npm run build', sharedRoot);
 }
 

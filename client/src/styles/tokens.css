@@ -9,7 +9,7 @@
   --page-bg: #0b0d0e;
   --card-bg: #1a1c1e;
   --card-border: 1px solid #2a2d30;
-  --card-radius: 8px;
+  --card-radius: 10px;
   --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   --card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.45);
 
@@ -66,11 +66,18 @@
   --filter-divider: #2a2d30;
   --filter-checkbox-active: #82c91e;
 
-  /* Container */
+  /* Container & page rhythm */
   --container-max: 1200px;
-  --container-px: 16px;
-  --section-gap: 40px;
-  --card-gap: 16px;
+  --container-px: clamp(1.25rem, 4vw, 1.75rem);
+  --section-gap: 3.5rem;
+  --card-gap: 1.25rem;
+  --content-max: var(--container-max);
+
+  /* Controls — shared button / field rhythm */
+  --control-gap: var(--space-3);
+  --control-padding-y: var(--space-4);
+  --control-padding-x: var(--space-6);
+  --control-min-height: 3rem;
 
   /* Brand Colors — aliases */
   --color-primary: var(--color-brand);
@@ -97,13 +104,13 @@
   --color-gray-900: #f3f4f6;
   --color-black: #000000;
 
-  /* Typography — Tajawal is PRIMARY */
-  --font-arabic: 'Tajawal', sans-serif;
-  --font-english: 'Inter', 'Tajawal', sans-serif;
+  /* Typography — Cairo (Arabic) + Inter (English) */
+  --font-arabic: 'Cairo', sans-serif;
+  --font-english: 'Inter', 'Cairo', sans-serif;
   --font-primary: var(--font-arabic);
   --font-mono: 'JetBrains Mono', monospace;
 
-  --line-height-ar: 1.8;
+  --line-height-ar: 1.75;
   --line-height-en: 1.6;
   --line-height-body: var(--line-height-ar);
   --line-height-current: var(--line-height-ar);
@@ -126,17 +133,17 @@
   --font-black: 900;
 
   --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-7: 1.75rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
+  --space-2: 0.625rem;
+  --space-3: 1rem;
+  --space-4: 1.25rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.375rem;
+  --space-8: 2.75rem;
+  --space-10: 3.25rem;
+  --space-12: 4rem;
+  --space-16: 5rem;
+  --space-20: 6rem;
 
   --radius-sm: 4px;
   --radius-md: 8px;

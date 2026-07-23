@@ -12,4 +12,5 @@ export interface EmailJob {
   html: string;
   template: string;
   lang: EmailLang;
+  replyTo?: string;
 }

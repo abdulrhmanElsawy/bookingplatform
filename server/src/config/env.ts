@@ -9,9 +9,6 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
-  /** `bull` = Redis + Bull queue. `direct` = send mail in-process (for hosts that block port 6379). */
-  EMAIL_QUEUE: z.enum(['bull', 'direct']).default('bull'),
-  REDIS_URL: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   CLIENT_ORIGIN: z
     .string()
     .min(1, 'CLIENT_ORIGIN is required (comma-separated allowed)'),
@@ -23,6 +20,10 @@ const EnvSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().min(3).optional(),
+  SUPPORT_EMAIL: z
+    .string()
+    .email()
+    .default('support@growth-world.local'),
   UPLOAD_DIR: z.string().min(1).default('./uploads'),
   /** Empty = relative `/uploads/...` (use Vite proxy in local dev). */
   PUBLIC_UPLOAD_BASE_URL: z.preprocess(
@@ -41,21 +42,9 @@ const EnvSchema = z.object({
   CLOUDINARY_UPLOAD_FOLDER: z
     .preprocess(emptyToUndefined, z.string().min(1).optional())
     .default('growth-world'),
-}).superRefine((data, ctx) => {
-  if (data.EMAIL_QUEUE === 'bull' && !data.REDIS_URL) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['REDIS_URL'],
-      message: 'REDIS_URL is required when EMAIL_QUEUE=bull',
-    });
-  }
 });
 
 export type Env = z.infer<typeof EnvSchema>;
-
-export function usesBullEmailQueue(env: Env = getEnv()): boolean {
-  return env.EMAIL_QUEUE === 'bull';
-}
 
 let cached: Env | null = null;
 

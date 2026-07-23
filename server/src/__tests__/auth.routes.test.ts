@@ -50,9 +50,14 @@ describe('Auth routes', () => {
     expect(emailService.sendVerificationEmail).toHaveBeenCalled();
   });
 
-  it('POST /api/auth/register duplicate returns localized emailExists', async () => {
+  it('POST /api/auth/register duplicate verified returns localized emailExists', async () => {
     const email = uniqueEmail();
     await request(app).post('/api/auth/register').send(registerPayload(email));
+    const otp = (emailService.sendVerificationEmail as jest.Mock).mock
+      .calls[0][1] as string;
+    await request(app)
+      .post('/api/auth/verify-email')
+      .send({ email, code: otp });
     const resAr = await request(app)
       .post('/api/auth/register')
       .send(registerPayload(email))
@@ -65,6 +70,17 @@ describe('Auth routes', () => {
       .set('Accept-Language', 'en')
       .expect(409);
     expect(resEn.body.error.message).toBe('Email address is already in use');
+  });
+
+  it('POST /api/auth/register duplicate unverified resends code', async () => {
+    const email = uniqueEmail();
+    await request(app).post('/api/auth/register').send(registerPayload(email));
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send(registerPayload(email))
+      .expect(201);
+    expect(res.body.user.email).toBe(email);
+    expect(emailService.sendVerificationEmail).toHaveBeenCalledTimes(2);
   });
 
   it('blocks login until email is verified', async () => {
@@ -199,6 +215,28 @@ describe('Auth routes', () => {
       .send({ email })
       .expect(400);
     expect(res.body.error.message).toBe('البريد الإلكتروني مفعّل بالفعل');
+  });
+
+  it('POST /api/auth/resend-password-reset sends reset email', async () => {
+    const email = uniqueEmail();
+    await request(app).post('/api/auth/register').send(registerPayload(email));
+    const otp = (emailService.sendVerificationEmail as jest.Mock).mock
+      .calls[0][1] as string;
+    await request(app)
+      .post('/api/auth/verify-email')
+      .send({ email, code: otp });
+
+    await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email })
+      .expect(200);
+    (emailService.sendPasswordResetEmail as jest.Mock).mockClear();
+
+    await request(app)
+      .post('/api/auth/resend-password-reset')
+      .send({ email })
+      .expect(200);
+    expect(emailService.sendPasswordResetEmail).toHaveBeenCalledTimes(1);
   });
 
   it('POST /api/auth/change-password requires auth', async () => {

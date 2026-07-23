@@ -40,8 +40,6 @@ import {
 import { toPublicUser, type PublicUser } from './user.dto.js';
 
 const OTP_TTL_MS = 15 * 60 * 1000;
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_MS = 15 * 60 * 1000;
 
 type RegisterInput = z.infer<typeof RegisterSchema>;
 type LoginInput = z.infer<typeof LoginSchema>;
@@ -66,8 +64,22 @@ export async function registerUser(
   lang: AppLang,
 ): Promise<{ user: PublicUser }> {
   const email = input.email.toLowerCase();
-  const existing = await User.findOne({ email });
+  const existing = await User.findOne({ email, isDeleted: false });
   if (existing) {
+    if (!existing.isEmailVerified) {
+      const otp = generateSixDigitOtp();
+      const otpHash = await hashOtp(otp);
+      existing.emailVerificationCode = otpHash;
+      existing.emailVerificationExpiry = new Date(Date.now() + OTP_TTL_MS);
+      await existing.save();
+      try {
+        await sendVerificationEmail(toEmailUser(existing), otp);
+      } catch (err) {
+        console.error('sendVerificationEmail failed', err);
+        throw httpError(503, translate(lang, 'emailSendFailed'), 'EMAIL_SEND_FAILED');
+      }
+      return { user: toPublicUser(existing) };
+    }
     throw httpError(409, translate(lang, 'emailExists'));
   }
 
@@ -91,7 +103,12 @@ export async function registerUser(
     },
   });
 
-  await sendVerificationEmail(toEmailUser(user), otp);
+  try {
+    await sendVerificationEmail(toEmailUser(user), otp);
+  } catch (err) {
+    console.error('sendVerificationEmail failed', err);
+    throw httpError(503, translate(lang, 'emailSendFailed'), 'EMAIL_SEND_FAILED');
+  }
 
   return { user: toPublicUser(user) };
 }
@@ -156,7 +173,12 @@ export async function resendVerificationEmail(
   user.emailVerificationCode = otpHash;
   user.emailVerificationExpiry = new Date(Date.now() + OTP_TTL_MS);
   await user.save();
-  await sendVerificationEmail(toEmailUser(user), otp);
+  try {
+    await sendVerificationEmail(toEmailUser(user), otp);
+  } catch (err) {
+    console.error('sendVerificationEmail failed', err);
+    throw httpError(503, translate(lang, 'emailSendFailed'), 'EMAIL_SEND_FAILED');
+  }
   return true;
 }
 
@@ -171,26 +193,8 @@ export async function loginUser(
     throw httpError(401, translate(lang, 'invalidCredentials'));
   }
 
-  if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
-    const minutes = Math.max(
-      1,
-      Math.ceil((user.lockUntil.getTime() - Date.now()) / 60_000),
-    );
-    throw httpError(
-      429,
-      translate(lang, 'accountLocked', { minutes }),
-      'ACCOUNT_LOCKED',
-    );
-  }
-
   const passwordOk = await verifyPassword(input.password, user.password);
   if (!passwordOk) {
-    user.loginAttempts = (user.loginAttempts ?? 0) + 1;
-    if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
-      user.lockUntil = new Date(Date.now() + LOCK_MS);
-      user.loginAttempts = 0;
-    }
-    await user.save();
     throw httpError(401, translate(lang, 'invalidCredentials'));
   }
 
@@ -198,8 +202,6 @@ export async function loginUser(
     throw httpError(403, translate(lang, 'emailNotVerified'), 'EMAIL_NOT_VERIFIED');
   }
 
-  user.loginAttempts = 0;
-  user.lockUntil = undefined;
   user.lastLogin = new Date();
   await user.save();
 
@@ -250,7 +252,12 @@ export async function requestPasswordReset(
   user.passwordResetExpiry = new Date(Date.now() + OTP_TTL_MS);
   user.passwordResetAttempts = 0;
   await user.save();
-  await sendPasswordResetEmail(toEmailUser(user), otp);
+  try {
+    await sendPasswordResetEmail(toEmailUser(user), otp);
+  } catch (err) {
+    console.error('sendPasswordResetEmail failed', err);
+    throw httpError(503, translate(lang, 'emailSendFailed'), 'EMAIL_SEND_FAILED');
+  }
 }
 
 export async function confirmPasswordReset(

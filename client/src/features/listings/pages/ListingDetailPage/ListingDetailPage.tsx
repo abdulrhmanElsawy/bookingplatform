@@ -23,18 +23,19 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { getSiteUrl } from '../../../../config/publicEnv';
 import { useJsonLd, useSEO } from '../../../../hooks/useSEO';
+import { useFormatCurrency } from '../../../../hooks/useFormatCurrency';
 import { useLanguage } from '../../../../hooks/useLanguage';
 import i18n from '../../../../i18n';
 import { buildListingJsonLd } from '../../../../utils/listingJsonLd';
 import { getApiErrorMessage } from '../../../../utils/apiErrorMessage';
 import { ListingsApiError, fetchListingBySlug } from '../../api/listingsApi';
-import { formatCurrency } from '../../../../utils/formatters';
 import { FavoriteButton } from '../../../favorites/components/FavoriteButton/FavoriteButton';
 import { fetchReviews } from '../../../reviews/api/reviewsApi';
 import { ReviewForm } from '../../../reviews/components/ReviewForm/ReviewForm';
 import { getListingCity, getListingName } from '../../../../utils/listing';
 import { resolveUploadUrl } from '../../../../utils/resolveUploadUrl';
 import { ListingGallery } from '../../components/ListingGallery';
+import { formatOpenHoursIndicator } from '../../constants/operatingHours';
 import {
   branchAddressLine,
   branchLabel,
@@ -61,6 +62,7 @@ export function ListingDetailPage() {
   const { t: tErrors } = useTranslation('errors');
   const { t: tReviews } = useTranslation('reviews');
   const { currentLang } = useLanguage();
+  const formatPrice = useFormatCurrency();
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -247,6 +249,14 @@ export function ListingDetailPage() {
   const nearestBranch =
     sortedBranches.find((b) => b._id === selectedBranchId) ?? sortedBranches[0];
   const otherBranches = sortedBranches.filter((b) => b._id !== nearestBranch?._id).slice(0, 4);
+  const openHoursDisplay = formatOpenHoursIndicator({
+    is24Hours: listing.is24Hours,
+    operatingHours: listing.operatingHours,
+  });
+  const branchHoursDisplay = formatOpenHoursIndicator({
+    is24Hours: Boolean(nearestBranch?.is24Hours || listing.is24Hours),
+    operatingHours: nearestBranch?.operatingHours ?? listing.operatingHours,
+  });
   const facilityItems = (listing.amenities ?? []).map((key) => ({
     key,
     label: t(`amenities.${key}`),
@@ -364,7 +374,7 @@ export function ListingDetailPage() {
         <section className={styles.statsStrip} aria-label={t('detailStats')}>
           <div>
             <span>{t('common:from')}</span>
-            <strong>{cheapestPrice != null ? formatCurrency(cheapestPrice, currentLang) : '-'}</strong>
+            <strong>{cheapestPrice != null ? formatPrice(cheapestPrice) : '-'}</strong>
           </div>
           <div>
             <span>{t('detailBranchesCount')}</span>
@@ -374,7 +384,7 @@ export function ListingDetailPage() {
           </div>
           <div>
             <span>{t('openNowLabel')}</span>
-            <strong>{listing.is24Hours ? t('open24Hours') : t('detailOpenHours')}</strong>
+            <strong>{openHoursDisplay}</strong>
           </div>
           <div>
             <span>{t('homeTypeLabel')}</span>
@@ -410,7 +420,7 @@ export function ListingDetailPage() {
                       <span className={styles.bestBadge}>{t('detailBestValue')}</span>
                     ) : null}
                     <span>{getLocalizedValue(pkg.name, currentLang)}</span>
-                    <strong>{formatCurrency(pkg.price, currentLang)}</strong>
+                    <strong>{formatPrice(pkg.price)}</strong>
                     <small>{feature}</small>
                     <small>{t('detailNoHiddenFees')}</small>
                     {active ? <CheckCircle2 className={styles.packageCheck} size={18} aria-hidden /> : null}
@@ -421,7 +431,7 @@ export function ListingDetailPage() {
           </section>
         ) : null}
 
-        <section id="section-facilities" className={styles.detailSection}>
+        <section id="section-facilities" className={`${styles.detailSection} ${styles.facilitySection}`}>
           <div className={styles.sectionHeading}>
             <h2>{t('detailServicesFacilities')}</h2>
             <span>{t('detailSwipeMore')}</span>
@@ -431,7 +441,7 @@ export function ListingDetailPage() {
               const Icon = item.icon;
               return (
                 <div key={item.key} className={styles.facilityTile}>
-                  <Icon size={32} aria-hidden />
+                  <Icon className={styles.facilityIcon} size={16} aria-hidden />
                   <span>{item.label}</span>
                 </div>
               );
@@ -442,11 +452,7 @@ export function ListingDetailPage() {
         <section id="section-branches" className={styles.detailSection}>
           <div className={styles.sectionHeading}>
             <h2>{t('detailBranchesWithCount', { count: branchCount })}</h2>
-            <strong>
-              {nearestBranch?.is24Hours || listing.is24Hours
-                ? t('open24Hours')
-                : t('detailOpenHours')}
-            </strong>
+            <strong>{branchHoursDisplay}</strong>
           </div>
           <div className={styles.branchesCard}>
             <div className={styles.branchMain}>
@@ -610,7 +616,7 @@ export function ListingDetailPage() {
           <span>
             {selectedPackage
               ? t('detailSubscribeWithPrice', {
-                  price: formatCurrency(selectedPackage.price, currentLang),
+                  price: formatPrice(selectedPackage.price),
                 })
               : t('bookNow')}
             <small>{selectedPackage ? getLocalizedValue(selectedPackage.name, currentLang) : t('detailBestValue')}</small>

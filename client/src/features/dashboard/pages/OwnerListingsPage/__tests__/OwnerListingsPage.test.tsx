@@ -125,4 +125,38 @@ describe('OwnerListingsPage', () => {
       expect(screen.getByTestId('owner-welcome-banner')).toBeInTheDocument();
     });
   });
+
+  it('shows resubmit CTA for rejected listings', async () => {
+    fetchMock.mockImplementation((url: string) => {
+      if (String(url).includes('/api/dashboard/owner/listings')) {
+        return Promise.resolve(
+          jsonBody({
+            listings: [
+              {
+                _id: 'rej1',
+                slug: 'rejected-gym',
+                name: { ar: 'مرفوض', en: 'Rejected Gym' },
+                status: 'rejected' as const,
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-02T00:00:00.000Z',
+                rejectionReason: { ar: 'صور غير واضحة', en: 'Blurry photos' },
+                category: { slug: 'gyms', name: { ar: 'أندية', en: 'Gyms' } },
+              },
+            ],
+          }),
+        );
+      }
+      return Promise.resolve(jsonBody({}, false, 404));
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('resubmit-listing-rej1')).toHaveAttribute(
+        'href',
+        '/owner/listings/rej1/edit',
+      );
+    });
+    expect(screen.getByText(/صور غير واضحة/)).toBeInTheDocument();
+  });
 });

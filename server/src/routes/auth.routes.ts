@@ -1,6 +1,5 @@
-import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import {
   LoginSchema,
   OtpVerifySchema,
@@ -9,7 +8,6 @@ import {
   RegisterSchema,
 } from '@growth-world/shared';
 
-import { getEnv } from '../config/env.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { validateBody } from '../middleware/validateBody.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
@@ -22,22 +20,6 @@ import {
 import * as authHandlers from '../modules/auth/auth.handlers.js';
 
 const router = Router();
-
-const skipRateLimit = () => getEnv().NODE_ENV === 'test';
-
-const resendVerificationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: skipRateLimit,
-  keyGenerator: (req) => {
-    const raw = (req.body as { email?: string })?.email;
-    return typeof raw === 'string' && raw.length > 0
-      ? raw.toLowerCase()
-      : (req.ip ?? 'unknown');
-  },
-});
 
 function asyncHandler(
   fn: (req: Request, res: Response) => Promise<void>,
@@ -61,7 +43,6 @@ router.post(
 
 router.post(
   '/resend-verification',
-  resendVerificationLimiter as unknown as RequestHandler,
   validateBody(ResendVerificationSchema),
   asyncHandler(authHandlers.resendVerification),
 );
@@ -88,6 +69,12 @@ router.post(
   '/forgot-password',
   validateBody(PasswordResetRequestSchema),
   asyncHandler(authHandlers.forgotPassword),
+);
+
+router.post(
+  '/resend-password-reset',
+  validateBody(PasswordResetRequestSchema),
+  asyncHandler(authHandlers.resendPasswordReset),
 );
 
 router.post(

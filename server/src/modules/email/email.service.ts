@@ -1,9 +1,23 @@
 import { enqueueEmail } from './email.queue.js';
 import type { EmailJob, EmailLang, EmailUser } from './email.types.js';
+import { User } from '../users/user.model.js';
 import { renderTemplate } from './templateEngine.js';
 
 function langSuffix(lang: EmailLang): string {
   return lang;
+}
+
+export async function loadEmailUserById(userId: string): Promise<EmailUser | null> {
+  const user = await User.findById(userId)
+    .select('email firstName preferences isDeleted')
+    .lean();
+  if (!user || user.isDeleted) return null;
+  if (user.preferences?.notifications?.email === false) return null;
+  return {
+    email: user.email,
+    firstName: user.firstName,
+    preferences: { language: user.preferences?.language ?? 'ar' },
+  };
 }
 
 function buildJob(

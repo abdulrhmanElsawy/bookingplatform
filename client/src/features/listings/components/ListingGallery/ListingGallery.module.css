@@ -1,9 +1,10 @@
 .gallery {
   display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: var(--space-2);
-  min-block-size: min(42vh, 420px);
-  margin-block-end: var(--space-6);
+  grid-template-columns: 1.55fr 1fr;
+  gap: var(--space-3);
+  block-size: min(30vh, 260px);
+  max-block-size: 260px;
+  margin-block-end: var(--space-5);
   border-radius: var(--card-radius);
   overflow: hidden;
   border: var(--card-border);
@@ -17,12 +18,14 @@
   cursor: pointer;
   border-radius: var(--radius-md);
   overflow: hidden;
+  min-block-size: 0;
+  block-size: 100%;
 }
 
 .main {
   inline-size: 100%;
   block-size: 100%;
-  min-block-size: 280px;
+  min-block-size: 0;
   object-fit: cover;
 }
 
@@ -32,6 +35,8 @@
   grid-template-rows: 1fr 1fr;
   gap: var(--space-2);
   position: relative;
+  min-block-size: 0;
+  block-size: 100%;
 }
 
 .thumbBtn {
@@ -41,13 +46,14 @@
   cursor: pointer;
   border-radius: var(--radius-sm);
   overflow: hidden;
+  min-block-size: 0;
 }
 
 .thumbBtn img {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
-  min-block-size: 80px;
+  min-block-size: 0;
 }
 
 .showAll {
@@ -89,24 +95,41 @@
 
 .lightboxGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: var(--space-4);
-  max-inline-size: 1200px;
+  max-inline-size: 960px;
   margin-inline: auto;
 }
 
 .lightboxGrid img {
   inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
   border-radius: var(--radius-md);
+}
+
+@media (min-width: 768px) {
+  .gallery {
+    block-size: min(28vh, 280px);
+    max-block-size: 280px;
+  }
 }
 
 @media (max-width: 767px) {
   .gallery {
     grid-template-columns: 1fr;
+    block-size: auto;
+    max-block-size: none;
+  }
+
+  .mainWrap {
+    aspect-ratio: 16 / 10;
+    max-block-size: 200px;
   }
 
   .thumbs {
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: 1fr;
+    block-size: 72px;
   }
 }

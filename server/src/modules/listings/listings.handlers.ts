@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { isCategoryLive } from '@growth-world/shared';
 
 import { tRes } from '../../lib/i18nHttp.js';
 import { httpError } from '../../middleware/errorHandler.js';
@@ -143,7 +144,11 @@ export const getListingAnalytics = asyncHandler(async (req, res) => {
 
 export const listCategories = asyncHandler(async (_req, res) => {
   const categories = await categoriesService.listActiveCategories();
-  res.json({ categories });
+  const enriched = (categories as Array<{ slug: string }>).map((c) => ({
+    ...c,
+    isBookable: isCategoryLive(c.slug),
+  }));
+  res.json({ categories: enriched });
 });
 
 export const listCategoryListings = asyncHandler(async (req, res) => {

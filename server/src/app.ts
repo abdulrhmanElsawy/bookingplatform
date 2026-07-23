@@ -4,7 +4,6 @@ import cors from 'cors';
 import express from 'express';
 import type { RequestHandler } from 'express';
 import mongoSanitize from 'express-mongo-sanitize';
-import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
@@ -29,6 +28,7 @@ import reviewsRoutes from './routes/reviews.routes.js';
 import { resolveUploadRoot } from './modules/uploads/localDiskStorage.js';
 import uploadsRoutes from './routes/uploads.routes.js';
 import usersRoutes from './routes/users.routes.js';
+import supportRoutes from './routes/support.routes.js';
 
 const env = getEnv();
 
@@ -78,28 +78,9 @@ app.use('/uploads', (req, res, next) => {
 
 app.use(languageMiddleware);
 
-const skipRateLimit = () => env.NODE_ENV === 'test';
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: skipRateLimit,
-});
-
-const generalApiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: skipRateLimit,
-});
-
 const api = express.Router();
 
-api.use('/auth', authLimiter as unknown as RequestHandler, authRoutes);
-api.use(generalApiLimiter as unknown as RequestHandler);
+api.use('/auth', authRoutes);
 
 const openApi = buildOpenApiSpec();
 api.use(
@@ -107,6 +88,7 @@ api.use(
   ...(swaggerUi.serve as unknown as RequestHandler[]),
   swaggerUi.setup(openApi) as unknown as RequestHandler,
 );
+api.use('/support', supportRoutes);
 api.use(healthRoutes);
 api.use('/listings', listingsRoutes);
 api.use('/notifications', notificationsRoutes);

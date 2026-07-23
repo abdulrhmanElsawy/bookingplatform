@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
+import { CompareFloatingBar } from '../../features/compare/components/CompareFloatingBar';
 import { BottomQuickNav } from './BottomQuickNav';
 import { Footer } from './Footer';
 import { Header } from './Header';
@@ -22,7 +23,8 @@ export function Layout() {
       >
         <Outlet />
       </main>
-      {!hideChrome ? <BottomQuickNav /> : null}
+      <CompareFloatingBar />
+      <BottomQuickNav />
       {!hideChrome ? <Footer /> : null}
     </div>
   );

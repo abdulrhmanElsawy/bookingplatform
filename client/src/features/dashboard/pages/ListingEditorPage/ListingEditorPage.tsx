@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { isCategoryLive } from '@growth-world/shared';
 
 import {
   ListingBranchesEditor,
@@ -781,10 +782,16 @@ export function ListingEditorPage() {
                   },
                   ...(categoriesQuery.data
                     ?.filter((c) => c.isActive !== false)
-                    .map((c) => ({
-                      value: c._id,
-                      label: `${c.name.ar} / ${c.name.en}`,
-                    })) ?? []),
+                    .map((c) => {
+                      const live = c.isBookable ?? isCategoryLive(c.slug);
+                      return {
+                        value: c._id,
+                        label: live
+                          ? `${c.name.ar} / ${c.name.en}`
+                          : `${c.name.ar} / ${c.name.en} (${tCommon('categoryComingSoon')})`,
+                        disabled: !live,
+                      };
+                    }) ?? []),
                 ]}
               />
             </div>

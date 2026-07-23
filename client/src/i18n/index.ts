@@ -19,6 +19,7 @@ export const namespaces = [
   'payments',
   'subscriptions',
   'errors',
+  'help',
 ] as const;
 
 const initialLng = getDefaultAppLanguage();

@@ -116,6 +116,51 @@ export function weekdayPresetHoursState(): HoursState {
   return state;
 }
 
+export function getCurrentWeekDay(): WeekDay {
+  return WEEK_DAYS[new Date().getDay()];
+}
+
+function formatTimeRange(open: string, close: string): string {
+  return `${open.trim()}–${close.trim()}`;
+}
+
+/** Short value for “open now” / hours chips: `24` or `06:00–22:00` only. */
+export function formatOpenHoursIndicator(source: {
+  is24Hours?: boolean;
+  operatingHours?: ListingDetailDto['operatingHours'];
+}): string {
+  if (source.is24Hours) {
+    return '24';
+  }
+
+  const hours = hoursStateFromListing(source.operatingHours);
+  const openDays = WEEK_DAYS.filter((day) => {
+    const row = hours[day];
+    return row.isOpen && row.open.trim() && row.close.trim();
+  });
+
+  if (openDays.length === 0) {
+    return '—';
+  }
+
+  const first = openDays[0];
+  const firstOpen = hours[first].open;
+  const firstClose = hours[first].close;
+  const allSame = openDays.every(
+    (day) => hours[day].open === firstOpen && hours[day].close === firstClose,
+  );
+  if (allSame) {
+    return formatTimeRange(firstOpen, firstClose);
+  }
+
+  const today = hours[getCurrentWeekDay()];
+  if (today.isOpen && today.open.trim() && today.close.trim()) {
+    return formatTimeRange(today.open, today.close);
+  }
+
+  return formatTimeRange(firstOpen, firstClose);
+}
+
 export function applyTimesToAllOpenDays(hoursByDay: HoursState): HoursState {
   const firstOpen = WEEK_DAYS.find((day) => hoursByDay[day].isOpen);
   if (!firstOpen) return hoursByDay;

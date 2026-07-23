@@ -6,8 +6,14 @@ import { translate } from '../../lib/i18n.js';
 import { isMongoObjectId } from '../../lib/objectId.js';
 import { slugifyLatin } from '../../lib/slugify.js';
 import { httpError } from '../../middleware/errorHandler.js';
+import { getLiveCategoryIds, isCategoryLive } from '../../lib/liveCategories.js';
 import { Category } from '../categories/category.model.js';
 import { createNotification } from '../notifications/notifications.service.js';
+import {
+  loadEmailUserById,
+  sendListingApprovedEmail,
+  sendListingRejectedEmail,
+} from '../email/email.service.js';
 import type { UserRole } from '../users/user.model.js';
 import { User } from '../users/user.model.js';
 
@@ -47,6 +53,14 @@ async function notifyListingApproved(listing: ListingNotifySlice): Promise<void>
       },
       metadata: { listingId: String(listing._id), slug: String(listing.slug) },
     });
+    const emailUser = await loadEmailUserById(String(listing.owner));
+    if (emailUser) {
+      const listingName =
+        emailUser.preferences.language === 'ar'
+          ? listing.name.ar
+          : listing.name.en;
+      await sendListingApprovedEmail(emailUser, listingName);
+    }
   } catch (err) {
     console.error('notifyListingApproved failed', err);
   }
@@ -70,6 +84,16 @@ async function notifyListingRejected(
       },
       metadata: { listingId: String(listing._id), slug: String(listing.slug) },
     });
+    const emailUser = await loadEmailUserById(String(listing.owner));
+    if (emailUser) {
+      const listingName =
+        emailUser.preferences.language === 'ar'
+          ? listing.name.ar
+          : listing.name.en;
+      const reasonText =
+        emailUser.preferences.language === 'ar' ? reason.ar.trim() : reason.en.trim();
+      await sendListingRejectedEmail(emailUser, listingName, reasonText);
+    }
   } catch (err) {
     console.error('notifyListingRejected failed', err);
   }
@@ -115,28 +139,41 @@ export async function listListings(options: {
   sort?: string;
   isPremium?: boolean;
 }): Promise<{ listings: unknown[]; total: number; page: number; limit: number }> {
+  const empty = {
+    listings: [] as unknown[],
+    total: 0,
+    page: options.page,
+    limit: options.limit,
+  };
+
   const filter: Record<string, unknown> = { status: 'active' };
   if (options.isPremium === true) filter.isPremium = true;
   const search = options.search?.trim();
+  const liveCategoryIds = await getLiveCategoryIds();
 
   if (options.category) {
     const key = options.category;
     if (isMongoObjectId(key)) {
+      const cat = await Category.findById(key).select('slug').lean<{ slug: string }>();
+      if (!cat || !isCategoryLive(cat.slug)) {
+        return empty;
+      }
       filter.category = key;
     } else {
-      const cat = await Category.findOne({ slug: key.toLowerCase() })
-        .select('_id')
-        .lean();
+      const slug = key.toLowerCase();
+      if (!isCategoryLive(slug)) {
+        return empty;
+      }
+      const cat = await Category.findOne({ slug }).select('_id').lean();
       if (!cat) {
-        return {
-          listings: [],
-          total: 0,
-          page: options.page,
-          limit: options.limit,
-        };
+        return empty;
       }
       filter.category = (cat as { _id: Types.ObjectId })._id;
     }
+  } else if (liveCategoryIds.length > 0) {
+    filter.category = { $in: liveCategoryIds };
+  } else {
+    return empty;
   }
 
   const textFilter =
@@ -170,9 +207,14 @@ export async function listListings(options: {
 export async function listFeatured(
   limit: number,
 ): Promise<{ listings: unknown[] }> {
+  const liveCategoryIds = await getLiveCategoryIds();
+  if (liveCategoryIds.length === 0) {
+    return { listings: [] };
+  }
   const listings = await Listing.find({
     status: 'active',
     isFeatured: true,
+    category: { $in: liveCategoryIds },
   })
     .populate('category', 'slug name')
     .sort({ averageRating: -1, createdAt: -1 })
@@ -187,9 +229,14 @@ export async function listNearby(options: {
   limit: number;
   maxKm: number;
 }): Promise<{ listings: unknown[] }> {
+  const liveCategoryIds = await getLiveCategoryIds();
+  if (liveCategoryIds.length === 0) {
+    return { listings: [] };
+  }
   const maxMeters = Math.max(1, options.maxKm) * 1000;
   const listings = await Listing.find({
     status: 'active',
+    category: { $in: liveCategoryIds },
     'location.coordinates': {
       $near: {
         $geometry: {
@@ -453,10 +500,10 @@ export async function patchListingStatus(
       slug: String(listing.slug),
     };
     if (body.status === 'active') {
-      void notifyListingApproved(slice);
+      await notifyListingApproved(slice);
     }
     if (body.status === 'rejected' && body.rejectionReason) {
-      void notifyListingRejected(slice, {
+      await notifyListingRejected(slice, {
         ar: body.rejectionReason.ar ?? '',
         en: body.rejectionReason.en ?? '',
       });

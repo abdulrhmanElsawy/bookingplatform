@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Bell,
   Globe,
-  Heart,
-  Ticket,
   Lock,
   Monitor,
   User,
@@ -11,7 +9,7 @@ import {
 } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import authForm from '../../../auth/components/authForm.module.css';
 import {
@@ -42,7 +40,6 @@ const TAB_CONFIG: Array<{
 
 export function ProfilePage() {
   const { t } = useTranslation('profile');
-  const { t: tSub } = useTranslation('subscriptions');
   const { t: tErrors } = useTranslation('errors');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -230,14 +227,6 @@ export function ProfilePage() {
                   {t(labelKey)}
                 </button>
               ))}
-              <Link className={styles.navItem} to="/account/favorites" role="tab">
-                <Heart className={styles.navIcon} size={18} strokeWidth={2} aria-hidden />
-                {t('myFavorites')}
-              </Link>
-              <Link className={styles.navItem} to="/account/memberships" role="tab">
-                <Ticket className={styles.navIcon} size={18} strokeWidth={2} aria-hidden />
-                {tSub('membershipsTitle')}
-              </Link>
             </nav>
           </aside>
 

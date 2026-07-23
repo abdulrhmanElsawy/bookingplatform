@@ -47,6 +47,21 @@ async function parseJson(res: Response): Promise<unknown> {
   }
 }
 
+function errorCodeFromBody(data: unknown): string | undefined {
+  if (
+    data &&
+    typeof data === 'object' &&
+    'error' in data &&
+    data.error &&
+    typeof data.error === 'object' &&
+    'code' in data.error &&
+    typeof (data.error as { code: unknown }).code === 'string'
+  ) {
+    return (data.error as { code: string }).code;
+  }
+  return undefined;
+}
+
 function messageFromBody(body: unknown): string {
   if (
     body &&
@@ -80,9 +95,7 @@ export async function postRegister(
     throw new AuthApiError(
       messageFromBody(data) || 'error',
       res.status,
-      typeof data === 'object' && data && 'error' in data
-        ? String((data as { error?: { code?: string } }).error?.code ?? '')
-        : undefined,
+      errorCodeFromBody(data),
     );
   }
   return {
@@ -107,7 +120,7 @@ export async function postVerifyEmail(body: {
     user?: Record<string, unknown>;
   };
   if (!res.ok) {
-    throw new AuthApiError(messageFromBody(data) || 'error', res.status);
+    throw new AuthApiError(messageFromBody(data) || 'error', res.status, errorCodeFromBody(data));
   }
   return {
     message: data.message ?? '',
@@ -171,9 +184,7 @@ export async function postLogin(
     throw new AuthApiError(
       messageFromBody(data) || 'error',
       res.status,
-      typeof data === 'object' && data && 'error' in data
-        ? String((data as { error?: { code?: string } }).error?.code ?? '')
-        : undefined,
+      errorCodeFromBody(data),
     );
   }
   return {
@@ -222,6 +233,22 @@ export async function postForgotPassword(
   const data = await parseJson(res);
   if (!res.ok) {
     throw new AuthApiError(messageFromBody(data) || 'error', res.status);
+  }
+}
+
+export async function postResendPasswordReset(
+  body: PasswordResetRequestBody,
+): Promise<void> {
+  const url = `${getApiUrl()}/api/auth/resend-password-reset`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: jsonHeaders(),
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  const data = await parseJson(res);
+  if (!res.ok) {
+    throw new AuthApiError(messageFromBody(data) || 'error', res.status, errorCodeFromBody(data));
   }
 }
 

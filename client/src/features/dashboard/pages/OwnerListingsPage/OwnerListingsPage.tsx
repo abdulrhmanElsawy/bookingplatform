@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 
+import { deleteListing } from '../../../listings/api/listingsApi';
 import { ensureGymOwner } from '../../../auth/utils/ensureGymOwner';
 import { useLanguage } from '../../../../hooks/useLanguage';
 import { getApiErrorMessage } from '../../../../utils/apiErrorMessage';
@@ -28,7 +29,10 @@ export function OwnerListingsPage() {
   const { currentLang } = useLanguage();
   const lang = currentLang === 'en' ? 'en' : 'ar';
   const location = useLocation();
+  const queryClient = useQueryClient();
   const welcome = Boolean((location.state as { welcome?: boolean } | null)?.welcome);
+  const [deleteTarget, setDeleteTarget] = useState<OwnerListingRowDto | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     void ensureGymOwner();
@@ -39,6 +43,18 @@ export function OwnerListingsPage() {
     queryFn: fetchOwnerListings,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (listingId: string) => deleteListing(listingId),
+    onSuccess: async () => {
+      setDeleteTarget(null);
+      setDeleteError('');
+      await queryClient.invalidateQueries({ queryKey: ['owner-listings'] });
+    },
+    onError: (e: Error) => {
+      setDeleteError(getApiErrorMessage(e, tErrors));
+    },
+  });
+
   const listings = data ?? [];
 
   return (
@@ -46,7 +62,7 @@ export function OwnerListingsPage() {
       <div className={styles.container}>
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>{t('myListings')}</h1>
+            <h1 className={styles.title}>{t('myAds')}</h1>
             <p className={styles.sub}>{t('myListingsSubtitle')}</p>
           </div>
           <Link
@@ -62,6 +78,12 @@ export function OwnerListingsPage() {
         {welcome ? (
           <p className={styles.welcome} data-testid="owner-welcome-banner">
             {t('ownerWelcomeBanner')}
+          </p>
+        ) : null}
+
+        {deleteError ? (
+          <p className={styles.error} role="alert">
+            {deleteError}
           </p>
         ) : null}
 
@@ -101,6 +123,7 @@ export function OwnerListingsPage() {
                     ? row.rejectionReason.en
                     : row.rejectionReason.ar
                   : '';
+              const isSuspended = row.status === 'suspended';
               return (
                 <li key={row._id} className={styles.card} data-testid={`owner-listing-${row._id}`}>
                   <div className={styles.cardMain}>
@@ -116,6 +139,9 @@ export function OwnerListingsPage() {
                     {row.status === 'pending' ? (
                       <p className={styles.cardMeta}>{t('listingAwaitingApproval')}</p>
                     ) : null}
+                    {isSuspended ? (
+                      <p className={styles.rejection}>{t('listingSuspendedHint')}</p>
+                    ) : null}
                     {rejection ? (
                       <p className={styles.rejection}>
                         {t('listingRejectionReason')}: {rejection}
@@ -129,13 +155,36 @@ export function OwnerListingsPage() {
                     >
                       {statusLabel(row.status, tCommon)}
                     </span>
-                    <Link
-                      className={styles.editLink}
-                      to={`/owner/listings/${row._id}/edit`}
-                      data-testid={`edit-listing-${row._id}`}
+                    {row.status === 'rejected' ? (
+                      <Link
+                        className={styles.resubmitLink}
+                        to={`/owner/listings/${row._id}/edit`}
+                        data-testid={`resubmit-listing-${row._id}`}
+                      >
+                        {t('editAndResubmit')}
+                      </Link>
+                    ) : isSuspended ? (
+                      <span className={styles.disabledAction}>{t('editListing')}</span>
+                    ) : (
+                      <Link
+                        className={styles.editLink}
+                        to={`/owner/listings/${row._id}/edit`}
+                        data-testid={`edit-listing-${row._id}`}
+                      >
+                        {t('editListing')}
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.deleteBtn}
+                      onClick={() => {
+                        setDeleteError('');
+                        setDeleteTarget(row);
+                      }}
+                      data-testid={`delete-listing-${row._id}`}
                     >
-                      {t('editListing')}
-                    </Link>
+                      {tCommon('delete')}
+                    </button>
                   </div>
                 </li>
               );
@@ -143,6 +192,46 @@ export function OwnerListingsPage() {
           </ul>
         ) : null}
       </div>
+
+      {deleteTarget ? (
+        <div className={styles.modalBackdrop} role="presentation">
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-listing-title"
+            data-testid="delete-listing-modal"
+          >
+            <h2 id="delete-listing-title" className={styles.modalTitle}>
+              {t('confirmDeleteListingTitle')}
+            </h2>
+            <p className={styles.modalBody}>
+              {t('confirmDeleteListingBody', {
+                name: lang === 'en' ? deleteTarget.name.en : deleteTarget.name.ar,
+              })}
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalCancel}
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteMutation.isPending}
+              >
+                {tCommon('cancel')}
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirm}
+                onClick={() => deleteMutation.mutate(deleteTarget._id)}
+                disabled={deleteMutation.isPending}
+                data-testid="confirm-delete-listing"
+              >
+                {tCommon('delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

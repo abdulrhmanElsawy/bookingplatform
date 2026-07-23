@@ -1,6 +1,5 @@
 process.env.NODE_ENV = 'test';
 process.env.MONGODB_URI ??= 'mongodb://127.0.0.1:27017/growth-world-test';
-process.env.REDIS_URL ??= 'redis://127.0.0.1:6379';
 process.env.CLIENT_ORIGIN ??= 'http://localhost:5173';
 process.env.PORT ??= '4000';
 process.env.JWT_SECRET ??= '0123456789abcdef0123456789abcdef';

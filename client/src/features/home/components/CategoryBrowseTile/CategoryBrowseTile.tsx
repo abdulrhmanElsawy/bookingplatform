@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
 
+import { CategoryComingSoon } from '../../../../components/shared/CategoryComingSoon';
 import {
   DEFAULT_CATEGORY_COVER,
   getCategoryCoverUrl,
@@ -13,6 +14,7 @@ export type CategoryBrowseTileProps = {
   to: LinkProps['to'];
   className?: string;
   labelClassName?: string;
+  comingSoon?: boolean;
   children: ReactNode;
 };
 
@@ -22,6 +24,7 @@ export function CategoryBrowseTile({
   to,
   className,
   labelClassName,
+  comingSoon = false,
   children,
 }: CategoryBrowseTileProps) {
   const coverUrl = getCategoryCoverUrl(slug, imageFromApi);
@@ -37,11 +40,10 @@ export function CategoryBrowseTile({
     );
   }
 
-  return (
-    <Link
-      to={to}
-      className={`${styles.tile} ${className ?? ''}`.trim()}
-    >
+  const tileClassName = `${styles.tile} ${comingSoon ? styles.tileComingSoon : ''} ${className ?? ''}`.trim();
+
+  const inner = (
+    <>
       <img
         className={styles.image}
         src={imageSrc}
@@ -52,7 +54,22 @@ export function CategoryBrowseTile({
         onError={onImageError}
       />
       <span className={styles.overlay} aria-hidden />
+      {comingSoon ? <CategoryComingSoon /> : null}
       <span className={labelClassName ?? styles.label}>{children}</span>
+    </>
+  );
+
+  if (comingSoon) {
+    return (
+      <div className={tileClassName} aria-disabled="true">
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <Link to={to} className={tileClassName}>
+      {inner}
     </Link>
   );
 }

@@ -1,5 +1,5 @@
 .shell {
-  padding-block: var(--space-8);
+  padding-block: var(--space-10);
   min-block-size: 60vh;
 }
 
@@ -14,7 +14,7 @@
 }
 
 .title {
-  margin-block-end: var(--space-6);
+  margin-block-end: var(--space-8);
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   color: var(--text-heading);
@@ -25,5 +25,5 @@
   border: var(--card-border);
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
-  padding: var(--space-6);
+  padding: var(--space-8);
 }

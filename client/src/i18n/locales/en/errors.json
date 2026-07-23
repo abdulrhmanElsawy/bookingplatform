@@ -8,5 +8,7 @@
   "uploadTooLarge": "The file is too large. Maximum {{max}} MB.",
   "uploadInvalidType": "This file type isn't supported.",
   "sessionExpired": "Your session has expired. Please sign in again.",
-  "validation": "Please check your input."
+  "validation": "Please check your input.",
+  "emailNotVerified": "Please verify your email address before signing in.",
+  "emailSendFailed": "We could not send the email. Please try again later."
 }

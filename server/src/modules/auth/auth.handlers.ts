@@ -123,6 +123,15 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
   res.json({ message: tRes(res, 'authPasswordResetSent') });
 }
 
+export async function resendPasswordReset(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const input = req.body as z.infer<typeof PasswordResetRequestSchema>;
+  await requestPasswordReset(input, req.lang);
+  res.json({ message: tRes(res, 'authPasswordResetSent') });
+}
+
 export async function resetPassword(req: Request, res: Response): Promise<void> {
   const input = req.body as z.infer<typeof PasswordResetConfirmSchema>;
   await confirmPasswordReset(input, req.lang);

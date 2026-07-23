@@ -2,6 +2,11 @@ import type { Types } from 'mongoose';
 
 import { Listing } from '../listings/listing.model.js';
 import { createNotification } from '../notifications/notifications.service.js';
+import { User } from '../users/user.model.js';
+import {
+  loadEmailUserById,
+  sendNewReviewEmail,
+} from '../email/email.service.js';
 import type { AppLang } from '../../lib/i18n.types.js';
 import { translate } from '../../lib/i18n.js';
 import { isMongoObjectId } from '../../lib/objectId.js';
@@ -38,6 +43,7 @@ async function resolveListingRef(
 async function notifyListingOwnerNewReview(
   listingId: string,
   reviewerUserId: string,
+  ratingOverall: number,
 ): Promise<void> {
   try {
     const row = await Listing.findById(listingId).select('owner name slug').lean();
@@ -64,6 +70,23 @@ async function notifyListingOwnerNewReview(
       },
       metadata: { listingSlug: slug },
     });
+    const emailUser = await loadEmailUserById(ownerId);
+    if (emailUser) {
+      const reviewer = await User.findById(reviewerUserId)
+        .select('firstName lastName')
+        .lean();
+      const reviewerName = reviewer
+        ? `${reviewer.firstName} ${reviewer.lastName}`.trim()
+        : '';
+      const listingName =
+        emailUser.preferences.language === 'ar' ? name.ar : name.en;
+      await sendNewReviewEmail(
+        emailUser,
+        listingName,
+        ratingOverall,
+        reviewerName,
+      );
+    }
   } catch (err) {
     console.error('notifyListingOwnerNewReview failed', err);
   }
@@ -178,7 +201,7 @@ export async function createReview(
     if (initialStatus === 'approved') {
       await recalculateListingRatings(listingId);
     }
-    await notifyListingOwnerNewReview(listingId, userId);
+    await notifyListingOwnerNewReview(listingId, userId, body.rating.overall);
     const populated = await Review.findById(review._id)
       .populate('user', 'firstName lastName avatar')
       .lean();

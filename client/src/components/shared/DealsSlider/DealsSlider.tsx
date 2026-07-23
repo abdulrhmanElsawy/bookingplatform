@@ -19,6 +19,7 @@ export type DealsSliderProps = {
   title?: string;
   titleId?: string;
   className?: string;
+  edgeBleed?: boolean;
 };
 
 export function DealsSlider({
@@ -27,6 +28,7 @@ export function DealsSlider({
   title,
   titleId,
   className,
+  edgeBleed = true,
 }: DealsSliderProps) {
   const { t } = useTranslation('common');
   const { isRTL } = useLanguage();
@@ -123,7 +125,7 @@ export function DealsSlider({
         </div>
 
       <div
-        className={styles.viewportWrap}
+        className={`${styles.viewportWrap} ${edgeBleed ? '' : styles.viewportWrapContained}`.trim()}
         role="region"
         aria-roledescription="carousel"
         aria-label={ariaLabel}

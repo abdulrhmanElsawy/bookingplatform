@@ -14,7 +14,7 @@ The full build checklist and per-task **Done** notes live in **[`TASKS.md`](./TA
 | `npm test` | Run tests in shared, client, and server |
 | `npm run seed:dev` | Seed MongoDB (categories, bilingual demo listings, users with Arabic default) — requires MongoDB |
 
-Local infrastructure: `docker compose up -d` (MongoDB + Redis). Configure `server/.env` and `client/.env` from each package’s `.env.example`.
+Local infrastructure: `docker compose up -d` (MongoDB). Configure `server/.env` and `client/.env` from each package’s `.env.example`. Set `SMTP_*` in `server/.env` for real email delivery.
 
 API docs (when the server is running): `GET /api/docs` (Swagger UI).
 
@@ -56,7 +56,7 @@ npm run test -w client
 
 ### Fonts
 
-- **Arabic:** **Tajawal** (loaded in `client/index.html` / global styles).
+- **Arabic:** **Cairo** (loaded in `client/index.html` / global styles).
 - **English:** **Inter** (same). The app typically applies font stacks via CSS so Latin text in mixed locales still reads well.
 
 ---

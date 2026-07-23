@@ -83,6 +83,44 @@ describe('HomePage', () => {
     expect(screen.getByTestId('deals-slider-next')).toHaveAccessibleName('التالي');
   });
 
+  it('marks non-live browse categories as coming soon without links', async () => {
+    (globalThis.fetch as jest.Mock).mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/categories')) {
+        return Promise.resolve(
+          jsonBody({
+            categories: [
+              {
+                _id: '1',
+                slug: 'gyms',
+                name: { ar: 'أندية', en: 'Gyms' },
+                isBookable: true,
+              },
+              {
+                _id: '2',
+                slug: 'padel',
+                name: { ar: 'بادل', en: 'Padel' },
+                isBookable: false,
+              },
+            ],
+          }),
+        );
+      }
+      if (url.includes('/api/listings/featured')) {
+        return Promise.resolve(jsonBody({ listings: [] }));
+      }
+      if (url.includes('/api/listings')) {
+        return Promise.resolve(jsonBody({ listings: [], total: 0, page: 1, limit: 10 }));
+      }
+      return Promise.reject(new Error(`unexpected fetch: ${url}`));
+    });
+    renderHome();
+    await screen.findByTestId('home-page');
+    expect(await screen.findByRole('link', { name: 'أندية' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'بادل' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('قريباً').length).toBeGreaterThan(0);
+  });
+
   it('shows city names in Arabic when language is Arabic', async () => {
     mockHomeFetches();
     renderHome();

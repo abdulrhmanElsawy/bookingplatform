@@ -10,6 +10,7 @@
   "otpExpired": "OTP has expired. Please request a new one",
   "otpInvalid": "Invalid OTP code",
   "emailNotVerified": "Please verify your email address first",
+  "emailSendFailed": "Could not send email. Please try again later.",
   "notImplemented": "This service is not available yet",
   "authRegisterSuccess": "Account created. Check your email to verify your account.",
   "authVerificationSent": "A verification code was sent to your email.",

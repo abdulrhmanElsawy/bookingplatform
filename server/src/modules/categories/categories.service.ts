@@ -1,5 +1,6 @@
 import type { Types } from 'mongoose';
 
+import { isCategoryLive } from '../../lib/liveCategories.js';
 import { Category } from './category.model.js';
 import { Listing } from '../listings/listing.model.js';
 
@@ -18,7 +19,12 @@ export async function listCategoryListings(
   page: number;
   limit: number;
 }> {
-  const category = await Category.findOne({ slug: slug.toLowerCase() }).lean();
+  const normalizedSlug = slug.toLowerCase();
+  if (!isCategoryLive(normalizedSlug)) {
+    const category = await Category.findOne({ slug: normalizedSlug }).lean();
+    return { category: category ?? null, listings: [], total: 0, page, limit };
+  }
+  const category = await Category.findOne({ slug: normalizedSlug }).lean();
   if (!category) {
     return { category: null, listings: [], total: 0, page, limit };
   }

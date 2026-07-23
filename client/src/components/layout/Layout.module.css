@@ -12,12 +12,18 @@
 
 @media (max-width: 767px) {
   .main:not(.mainListingDetail) {
-    padding-block-end: calc(92px + env(safe-area-inset-bottom));
+    padding-block-end: calc(148px + env(safe-area-inset-bottom));
   }
 }
 
 .mainListingDetail {
   padding-block-end: 0;
+}
+
+@media (max-width: 767px) {
+  .mainListingDetail {
+    padding-block-end: calc(148px + env(safe-area-inset-bottom));
+  }
 }
 
 .pageEnter {

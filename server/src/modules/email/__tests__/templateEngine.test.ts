@@ -22,6 +22,6 @@ describe('templateEngine', () => {
     });
     expect(html).toContain('999888');
     expect(html).toContain('dir="rtl"');
-    expect(html).toContain('Tajawal');
+    expect(html).toContain('Cairo');
   });
 });

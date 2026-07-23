@@ -40,3 +40,12 @@
   position: relative;
   z-index: 2;
 }
+
+.tileComingSoon {
+  cursor: not-allowed;
+  opacity: 0.88;
+}
+
+.tileComingSoon:hover {
+  box-shadow: none;
+}

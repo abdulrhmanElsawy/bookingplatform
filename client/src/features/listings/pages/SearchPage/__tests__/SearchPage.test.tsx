@@ -178,6 +178,27 @@ describe('SearchPage', () => {
     expect(screen.getByRole('option', { name: 'الأعلى تقييماً' })).toBeInTheDocument();
   });
 
+  it('shows coming soon empty state for non-live category query', async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={client}>
+        <I18nextProvider i18n={i18n}>
+          <MemoryRouter initialEntries={['/listings?category=padel']}>
+            <SearchPage />
+          </MemoryRouter>
+        </I18nextProvider>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByTestId('category-coming-soon')).toBeInTheDocument();
+    expect(screen.getByText('هذه الخدمة قريباً')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'تصفح الأندية' })).toHaveAttribute(
+      'href',
+      '/listings?category=gyms',
+    );
+  });
+
   it('exposes translated sort options in English', async () => {
     await i18n.changeLanguage('en');
     document.documentElement.dir = 'ltr';

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -6,7 +6,11 @@ import {
   PasswordResetRequestSchema,
 } from '@growth-world/shared';
 
-import { postForgotPassword, postResetPassword } from '../../api/authApi';
+import {
+  postForgotPassword,
+  postResendPasswordReset,
+  postResetPassword,
+} from '../../api/authApi';
 import { getApiErrorMessage } from '../../../../utils/apiErrorMessage';
 import { OTPInput } from '../OTPInput/OTPInput';
 import { PasswordStrengthMeter } from '../PasswordStrengthMeter/PasswordStrengthMeter';
@@ -25,6 +29,16 @@ export function ForgotPasswordPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resendSec, setResendSec] = useState(0);
+
+  useEffect(() => {
+    if (step !== 2) return;
+    setResendSec(60);
+    const id = window.setInterval(() => {
+      setResendSec((s) => (s <= 0 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [step]);
 
   const onStep1 = useCallback(async () => {
     setError('');
@@ -46,6 +60,27 @@ export function ForgotPasswordPage() {
       setSubmitting(false);
     }
   }, [email, t, tErrors]);
+
+  const onResend = useCallback(async () => {
+    if (resendSec > 0) return;
+    setError('');
+    const parsed = PasswordResetRequestSchema.safeParse({
+      email: email.trim().toLowerCase(),
+    });
+    if (!parsed.success) {
+      setError(t('validationHint'));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await postResendPasswordReset(parsed.data);
+      setResendSec(60);
+    } catch (e) {
+      setError(getApiErrorMessage(e, tErrors));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [email, resendSec, t, tErrors]);
 
   const onStep3 = useCallback(async () => {
     setError('');
@@ -130,6 +165,16 @@ export function ForgotPasswordPage() {
               }}
             >
               {t('back')}
+            </button>
+            <button
+              type="button"
+              className="btnSecondary"
+              disabled={submitting || resendSec > 0}
+              onClick={() => void onResend()}
+            >
+              {resendSec > 0
+                ? t('otpResendIn', { seconds: resendSec })
+                : t('otpResend')}
             </button>
             <button
               type="button"

@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { FavoriteButton } from '../../../features/favorites/components/FavoriteButton/FavoriteButton';
+import { useFormatCurrency } from '../../../hooks/useFormatCurrency';
 import { useLanguage } from '../../../hooks/useLanguage';
-import { formatCurrency } from '../../../utils/formatters';
 import { resolveUploadUrl } from '../../../utils/resolveUploadUrl';
 import { getListingCity, getListingName } from '../../../utils/listing';
 import { GuestSavingsStrip } from '../GuestSavingsStrip';
@@ -71,6 +71,7 @@ export function ListingCard({
 }: ListingCardProps) {
   const { t } = useTranslation(['common', 'listings']);
   const { currentLang } = useLanguage();
+  const formatPrice = useFormatCurrency();
   const dir = currentLang === 'ar' ? 'rtl' : 'ltr';
 
   if (skeleton || !listing) {
@@ -222,14 +223,14 @@ export function ListingCard({
               <>
                 {showStrike ? (
                   <span className={styles.priceOriginal}>
-                    {formatCurrency(comparePrice(firstPrice), currentLang)}
+                    {formatPrice(comparePrice(firstPrice))}
                   </span>
                 ) : null}
                 <span className={styles.price}>
-                  {formatCurrency(firstPrice, currentLang)}
+                  {formatPrice(firstPrice)}
                 </span>
                 <span className={styles.taxes}>
-                  {t('listings:listingCardListPricePrefix')} {t('common:from')}
+                  {t('common:from')}
                 </span>
               </>
             ) : null}
@@ -309,7 +310,7 @@ export function ListingCard({
             <div className={styles.priceRow}>
               <span className={styles.packageLabel}>{t('listings:listingCardPackageStarts')}</span>
               <span className={styles.price}>
-                {t('common:from')} {formatCurrency(firstPrice, currentLang)}
+                {t('common:from')} {formatPrice(firstPrice)}
               </span>
             </div>
           ) : null}

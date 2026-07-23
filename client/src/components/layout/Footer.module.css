@@ -103,7 +103,7 @@
 }
 
 .colTitle {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   padding-inline-start: var(--space-2);
   border-inline-start: 2px solid var(--color-brand);
   font-size: var(--text-xs);
@@ -120,7 +120,7 @@
 }
 
 .list li {
-  margin-block-end: var(--space-2);
+  margin-block-end: var(--space-3);
 }
 
 .link {

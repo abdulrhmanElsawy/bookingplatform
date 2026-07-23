@@ -1,10 +1,24 @@
 import * as transport from '../email.transport';
-import { emailQueueDefaultJobOptions } from '../email.queue';
+import { enqueueEmail } from '../email.queue';
 import { sendVerificationEmail } from '../email.service';
+import type { EmailJob } from '../email.types';
 
-describe('email.queue config', () => {
-  it('uses three attempts for queued jobs', () => {
-    expect(emailQueueDefaultJobOptions.attempts).toBe(3);
+describe('email.queue direct send', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('enqueueEmail sends mail directly', async () => {
+    const spy = jest.spyOn(transport, 'sendMailDirect').mockResolvedValue();
+    const job: EmailJob = {
+      to: 'a@example.com',
+      subject: 'Test',
+      html: '<p>hi</p>',
+      template: 'verification-code',
+      lang: 'en',
+    };
+    await enqueueEmail(job);
+    expect(spy).toHaveBeenCalledWith(job);
   });
 });
 

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isCategoryLive } from '@growth-world/shared';
 import { Link, createSearchParams } from 'react-router-dom';
 
 import { BrandLogo } from '../brand/BrandLogo';
@@ -119,15 +120,21 @@ export function Footer() {
               </li>
               {CATEGORY_PILLS.map((pill) => (
                 <li key={pill.slug}>
-                  <Link
-                    className={styles.link}
-                    to={{
-                      pathname: '/listings',
-                      search: createSearchParams({ category: pill.slug }).toString(),
-                    }}
-                  >
-                    {t(pill.labelKey)}
-                  </Link>
+                  {isCategoryLive(pill.slug) ? (
+                    <Link
+                      className={styles.link}
+                      to={{
+                        pathname: '/listings',
+                        search: createSearchParams({ category: pill.slug }).toString(),
+                      }}
+                    >
+                      {t(pill.labelKey)}
+                    </Link>
+                  ) : (
+                    <span className={styles.linkMuted} aria-disabled="true">
+                      {t(pill.labelKey)} ({t('categoryComingSoon')})
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -170,7 +177,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} to="/listings">
+                <Link className={styles.link} to="/help" data-testid="footer-help-link">
                   {t('help')}
                 </Link>
               </li>

@@ -2,6 +2,7 @@ import {
   applyTimesToAllOpenDays,
   countOpenDays,
   defaultHoursState,
+  formatOpenHoursIndicator,
   hoursStateFromListing,
   hoursStateToPayload,
   validateHoursState,
@@ -39,6 +40,20 @@ describe('operatingHours helpers', () => {
     const state = defaultHoursState();
     state.monday = { isOpen: true, open: '22:00', close: '06:00' };
     expect(validateHoursState(false, state, { required: true })).toBe('invalidRange');
+  });
+
+  it('formatOpenHoursIndicator returns 24 for 24h venues', () => {
+    expect(formatOpenHoursIndicator({ is24Hours: true })).toBe('24');
+  });
+
+  it('formatOpenHoursIndicator returns time range without extra labels', () => {
+    expect(
+      formatOpenHoursIndicator({
+        operatingHours: {
+          monday: { isOpen: true, open: '06:00', close: '22:00' },
+        },
+      }),
+    ).toBe('06:00–22:00');
   });
 
   it('applies first open day times to all other open days', () => {

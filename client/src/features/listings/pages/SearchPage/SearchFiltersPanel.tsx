@@ -1,4 +1,4 @@
-import { getLocalizedValue } from '@growth-world/shared';
+import { getLocalizedValue, isCategoryLive } from '@growth-world/shared';
 import type { TFunction } from 'i18next';
 
 import { FilterCard } from '../../../../components/shared/FilterCard';
@@ -103,16 +103,24 @@ export function SearchFiltersPanel({
       </FilterCard>
 
       <FilterCard title={t('category')} compact={compact}>
-        {categories.map((c) => (
-          <label key={c._id} className={styles.checkRow}>
-            <input
-              type="checkbox"
-              checked={filterCategories.includes(c.slug)}
-              onChange={() => onToggleCategory(c.slug)}
-            />
-            <span>{getLocalizedValue(c.name, currentLang)}</span>
-          </label>
-        ))}
+        {categories.map((c) => {
+          const live = c.isBookable ?? isCategoryLive(c.slug);
+          return (
+            <label key={c._id} className={styles.checkRow}>
+              <input
+                type="checkbox"
+                checked={filterCategories.includes(c.slug)}
+                onChange={() => onToggleCategory(c.slug)}
+                disabled={!live}
+                aria-disabled={!live}
+              />
+              <span>
+                {getLocalizedValue(c.name, currentLang)}
+                {!live ? ` (${tCommon('categoryComingSoon')})` : ''}
+              </span>
+            </label>
+          );
+        })}
       </FilterCard>
 
       <FilterCard title={t('openNow')} compact={compact}>
